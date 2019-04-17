@@ -22,3 +22,4 @@ for (stn in list_recent)  {
     fdata[[i]] <- read.csv(fname, header = TRUE, sep = ",")
   }
 
+ylt <- fdata[[2]]
