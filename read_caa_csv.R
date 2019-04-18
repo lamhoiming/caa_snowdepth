@@ -4,12 +4,12 @@
 
 # install packages
 require(graphics)
-require(zoo)
+#require(zoo)
 library(ggplot2)
 library(Hmisc)
-library(xts)
+#library(xts)
 library(magrittr)
-
+library(hydroTSM)
 #### set working directory
 wdir <- "d:/phd/caa/data/station/csv/"
 setwd(wdir)
@@ -32,6 +32,10 @@ for (stn in list_recent)  {
     fdata[[i]] <- read.csv(fname, header = TRUE, sep = ",")
   }
 
+# Define month sequence for plotting
+#sep_jul <- c("S", "O", "N", "D", "J", "F", "M", "A", "M", "J", "J")
+aug_jul = c("Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul")
+A_J <- c("A","S", "O", "N", "D", "J", "F", "M", "A", "M", "J", "J")
 
 #### Analysis
 # # Time series for Alert YLT
@@ -57,37 +61,67 @@ for (stn in list_recent)  {
 ##############################################
 ##############################################
 # Time series for any
-x = 4
-title <- paste(list_recent[x], collapse = '')
+for (x in 1:8)
+  {title <- paste(list_recent[x], collapse = '')
 stn <- fdata[[x]]
 stn.date <- as.Date(stn[,1])
-stn_snow <- zoo(stn[,3],stn.date)
-#stn_snow <- xts(stn[,3],stn.date)
+#stn_snow <- zoo(stn[,3],stn.date)
+stn_snow <- data.frame(date = stn.date, snow_depth = stn[,3])#, order.by = as.yearmon(stn.date))
 
-sep_jul <- c("S", "O", "N", "D", "J", "F", "M", "A", "M", "J", "J")
 
 # Average by month, separate years
-stn_mean_bymonth <- aggregate(stn_snow, format(time(stn_snow), "%m"), mean, na.rm = TRUE) #%>%
-  coredata() # convert from zoo (time-ordered) to matrix/vector
-stn_sd_bymonth <- aggregate(stn_snow, format(time(stn_snow), "%m"), sd, na.rm = TRUE) %>%
-  coredata() # convert from zoo (time-ordered) to matrix/vector
+#/# stn_mean_bymonth <- aggregate(stn_snow, format(time(stn_snow), "%m"), mean, na.rm = TRUE) %>%
+#  coredata() # convert from zoo (time-ordered) to matrix/vector
+stn_mean_bymonth <- monthlyfunction(stn_snow, FUN = mean, na.rm = TRUE) %>% data.frame()
+stn_sd_bymonth <- monthlyfunction(stn_snow, FUN = sd, na.rm = TRUE) %>% data.frame()
+
+if (length(stn_mean_bymonth) >= 11) {
+stn_mean_bymonth_aug <- stn_mean_bymonth[aug_jul[2:12]] %>% as.numeric()
+stn_sd_bymonth_aug <- stn_sd_bymonth[aug_jul[2:12]] %>% as.numeric()
+
+} else if (length(stn_mean_bymonth) < 11) {
+  paste(x, title, "Missing Sep!!") %>% print()
+  print("set Aug and Sep to NA")
+  stn_mean_bymonth_aug <- c('Sep' = Inf, stn_mean_bymonth[aug_jul[-(1:2)]]) %>% as.numeric()
+  stn_sd_bymonth_aug <- c('Sep' = Inf, stn_sd_bymonth[aug_jul[-(1:2)]]) %>% as.numeric()
+}
+# Plot monthly averages
+pdf(paste(title, '.pdf', collapse = ''))
+png(paste(title, '.png', collapse = ''))
+errbar(1:11, stn_mean_bymonth_aug, stn_mean_bymonth_aug + stn_sd_bymonth_aug, stn_mean_bymonth_aug - stn_sd_bymonth_aug,
+       xaxt = "n",  xlab = "Month", ylab = "Snow depth (cm)", ylim = c(0,60), type = "o")
+axis(side = 1, labels = A_J[2:12], at = 1:11)
+title(main = title)
+dev.off()
+}
+
+
+
+#stn_sd_bymonth <- aggregate(stn_snow, format(time(stn_snow), "%m"), sd, na.rm = TRUE) %>%
+#  coredata() # convert from zoo (time-ordered) to matrix/vector
 
 # Rearrange to start from Sep to July; ignore August
-# # if length(stn_mean_bymonth) == 12
-
-tmp_mean_bymonth <- c(stn_mean_bymonth[-(1:7)],stn_mean_bymonth[1:7])
-stn_mean_bymonth_sep <- data.frame(month = sep_jul, snow_depth = tmp_mean_bymonth[2:12])
-rm(tmp_mean_bymonth)
-
-tmp_sd_bymonth <- c(stn_sd_bymonth[-(1:7)],stn_sd_bymonth[1:7])
-stn_sd_bymonth_sep <- data.frame(month = sep_jul, snow_depth = tmp_sd_bymonth[2:12])
-rm(tmp_sd_bymonth)
+# # 
+# tmp_mean_bymonth <- c(stn_mean_bymonth[-(1:7)],stn_mean_bymonth[1:7])
+# tmp_sd_bymonth <- c(stn_sd_bymonth[-(1:7)],stn_sd_bymonth[1:7])
+# 
+# if (length(stn_mean_bymonth) == 12) {
+#   stn_mean_bymonth_sep <- data.frame(month = sep_jul, snow_depth = tmp_mean_bymonth[2:12])
+#   stn_sd_bymonth_sep <- data.frame(month = sep_jul, std_dev = tmp_sd_bymonth[2:12])
+#   } else if () {
+#   
+# }
+# rm(tmp_mean_bymonth)
+# rm(tmp_sd_bymonth)
 
 # Plot monthly average starting from August
 #pdf("test.pdf")
-plot(stn_mean_bymonth_sep[,2], xaxt = "n")
-errbar(1:11, stn_mean_bymonth_sep[,2],stn_mean_bymonth_sep[,2] + stn_sd_bymonth_sep[,2], stn_mean_bymonth_sep[,2] - stn_sd_bymonth_sep[,2],
-       xaxt = "n",  xlab = "Month", ylab = "Snow depth (cm)", ylim = c(0,60), type ="o")
-axis(side = 1, labels = sep_jul[1:11], at = 1:11)
-title(main = title)
+# plot(stn_mean_bymonth_sep[,2], xaxt = "n")
+# errbar(1:11, stn_mean_bymonth_sep[,2],stn_mean_bymonth_sep[,2] + stn_sd_bymonth_sep[,2], stn_mean_bymonth_sep[,2] - stn_sd_bymonth_sep[,2],
+#        xaxt = "n",  xlab = "Month", ylab = "Snow depth (cm)", ylim = c(0,60), type ="o")
+# axis(side = 1, labels = sep_jul[1:11], at = 1:11)
+# title(main = title)
 #dev.off()
+
+#plot(stn_mean_bymonth_aug[1:12], xaxt = "n")
+
