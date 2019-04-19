@@ -6,11 +6,13 @@
 require(graphics)
 #require(zoo)
 library(ggplot2)
-library(Hmisc)
-#library(xts)
-library(magrittr)
-library(hydroTSM)
+library(Hmisc) # for errbar()
+library(xts)
+library(magrittr) #for %>%
+library(hydroTSM) #for monthlyfunction()
 library(stringr)
+library(dplyr)
+library(lubridate)
 #### set working directory
 wdir <- "d:/phd/caa/data/station/csv/"
 setwd(wdir)
@@ -30,7 +32,7 @@ list_stn <- list("CAPE PARRY ZUE",
                  ####
                  "ALERT LT1", "ALERT YLT", "CAMBRIDGE BAY YCB", "CORAL HARBOUR YZS", "EUREKA WEU", "HALL BEACH YUX", "IQALUIT YFB", "RESOLUTE YRB", # with 2016 data
                  ####
-"ARCTIC BAY YAB",
+                "ARCTIC BAY YAB",
 "CAPE DORSET YTE",
 "CHESTERFIELD INLET YCS",
                  "CHURCHILL YYQ",
@@ -95,6 +97,7 @@ stn_sd_bymonth_aug <- stn_sd_bymonth[aug_jul[2:12]] %>% as.numeric()
   stn_mean_bymonth_aug <- stn_mean_bymonth[aug_jul[2:12]] %>% as.numeric()
   stn_sd_bymonth_aug <- stn_sd_bymonth[aug_jul[2:12]] %>% as.numeric()
 } 
+#########
 # else if (length(stn_mean_bymonth) < 10) {
 #   paste("!!!", x, stn_title, "Too few month, check") %>% print()
 #   next()
@@ -112,7 +115,7 @@ stn_sd_bymonth_aug <- stn_sd_bymonth[aug_jul[2:12]] %>% as.numeric()
 # title(main = stn_title)
 # dev.off()
 # dev.off()
-
+########
 # plot entire ts
 svdir <- "d:/phd/caa/output/graphs/whole_ts"
 setwd(svdir)
