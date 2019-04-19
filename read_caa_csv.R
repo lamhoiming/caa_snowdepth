@@ -97,6 +97,10 @@ stn_sd_bymonth_aug <- stn_sd_bymonth[aug_jul[2:12]] %>% as.numeric()
   stn_mean_bymonth_aug <- stn_mean_bymonth[aug_jul[2:12]] %>% as.numeric()
   stn_sd_bymonth_aug <- stn_sd_bymonth[aug_jul[2:12]] %>% as.numeric()
 } 
+
+# Linear regression for accumulation season
+lm.a <- lm(stn_mean_bymonth_aug~aug_jul)
+summary(lm.a)
 #########
 # else if (length(stn_mean_bymonth) < 10) {
 #   paste("!!!", x, stn_title, "Too few month, check") %>% print()
