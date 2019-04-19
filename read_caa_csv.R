@@ -101,29 +101,32 @@ stn_sd_bymonth_aug <- stn_sd_bymonth[aug_jul[2:12]] %>% as.numeric()
 # }
 
 # Plot monthly averages
-svdir <- "d:/phd/caa/output/graphs/monthly_series"
-setwd(svdir)
+# svdir <- "d:/phd/caa/output/graphs/monthly_series"
+# setwd(svdir)
+# 
+# pdf(paste(stn_title, '.pdf', sep = ''))
+# png(paste(stn_title, '.png', sep = ''))
+# errbar(1:11, stn_mean_bymonth_aug, stn_mean_bymonth_aug + stn_sd_bymonth_aug, stn_mean_bymonth_aug - stn_sd_bymonth_aug,
+#        xaxt = "n",  xlab = "Month", ylab = "Snow depth (cm)", ylim = c(0,60), type = "o")
+# axis(side = 1, labels = A_J[2:12], at = 1:11)
+# title(main = stn_title)
+# dev.off()
+# dev.off()
 
-pdf(paste(stn_title, '.pdf', sep = ''))
-png(paste(stn_title, '.png', sep = ''))
-errbar(1:11, stn_mean_bymonth_aug, stn_mean_bymonth_aug + stn_sd_bymonth_aug, stn_mean_bymonth_aug - stn_sd_bymonth_aug,
-       xaxt = "n",  xlab = "Month", ylab = "Snow depth (cm)", ylim = c(0,60), type = "o")
-axis(side = 1, labels = A_J[2:12], at = 1:11)
+# plot entire ts
+svdir <- "d:/phd/caa/output/graphs/whole_ts"
+setwd(svdir)
+pdf(paste(stn_title, '_all_ts.pdf', sep = ''))
+png(paste(stn_title, '_all_ts.png', sep = ''))
+plot(stn_snow,  xlab = "Year", ylab = "Snow depth (cm)", ylim = c(0,100), type = "o")
 title(main = stn_title)
 dev.off()
 dev.off()
+
+
 }
 
-# for (x in c(2,6,18:20,22:24,26:28,31)){
-#   stn_title <- gsub('([[:punct:]])|\\s+', '_', list_stn[x])
-#   stn <- fdata[[x]]
-#   stn.date <- as.Date(stn[,1]) #, format = "%Y-%m-%d")
-#   #stn_snow <- zoo(stn[,3],stn.date)
-#   stn_snow <- data.frame(date = stn.date, snow_depth = stn[,3])#, order.by = as.yearmon(stn.date))
-#   stn_mean_bymonth <- monthlyfunction(stn_snow, FUN = mean, na.rm = TRUE) %>% data.frame()
-#   stn_sd_bymonth <- monthlyfunction(stn_snow, FUN = sd, na.rm = TRUE) %>% data.frame()
-#   
-# }
+
 ########################
 #stn_sd_bymonth <- aggregate(stn_snow, format(time(stn_snow), "%m"), sd, na.rm = TRUE) %>%
 #  coredata() # convert from zoo (time-ordered) to matrix/vector
