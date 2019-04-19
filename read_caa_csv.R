@@ -10,6 +10,7 @@ library(Hmisc)
 #library(xts)
 library(magrittr)
 library(hydroTSM)
+library(stringr)
 #### set working directory
 wdir <- "d:/phd/caa/data/station/csv/"
 setwd(wdir)
@@ -18,16 +19,44 @@ setwd(wdir)
 idname <- read.csv(file = "_ID_NAME.csv", header = TRUE, sep = ",")
 
 # List of stations in CAA with 2016 data
-list_recent <- list("ALERT LT1", "ALERT YLT", "CAMBRIDGE BAY YCB", "CORAL HARBOUR YZS", "EUREKA WEU", "HALL BEACH YUX", "IQALUIT YFB", "RESOLUTE YRB")
+list_stn <- list("CAPE PARRY ZUE", 
+                 "COPPERMINE YCO",
+                 "HOLMAN ISLAND YHI",
+                 "ISACHSEN (OLD ICE) IC1",
+                 "ISACHSEN YIC",
+                 "LADY FRANKLIN POINT YUJ",
+                 "MOULD BAY YMD",
+                 "SACHS HARBOUR YSY", # West of 100W, no 2016
+                 ####
+                 "ALERT LT1", "ALERT YLT", "CAMBRIDGE BAY YCB", "CORAL HARBOUR YZS", "EUREKA WEU", "HALL BEACH YUX", "IQALUIT YFB", "RESOLUTE YRB", # with 2016 data
+                 ####
+"ARCTIC BAY YAB",
+"CAPE DORSET YTE",
+"CHESTERFIELD INLET YCS",
+                 "CHURCHILL YYQ",
+                 "CLYDE YCY",
+                 "GLADMAN POINT YUR",
+                 "INUKJUAK PH1",
+                 "INUKJUAK WPH",
+                 "IQALUIT YFB",
+                 "KUUJJUAQ YVP",
+                 "KUUJJUARAPIK YGW",
+                 "MOOSONEE WZC",
+                 "POND INLET YIO",
+                 "QUAQTAQ HA1",
+                 "QUAQTAQ YHA",
+                 "SHEPHERD BAY YUS",
+                 "SPENCE BAY YNC" # East of 100W, in hudson bay, no 2016
+)
 
 i = 0
 fdata <- vector("list")
 
-# Read files with 2016 data
-for (stn in list_recent)  {
+# Read files 
+for (s in list_stn)  {
     i = i +1
-    n <- match(stn,idname[,2])
-    fname <- paste(idname[n,1],".csv", sep = "") 
+    n <- match(s,idname[,2]) 
+    fname <- paste(idname[n,1],".csv", sep = "")
     message(i, " ", fname, " ", idname[n,2]) #Print out file to be read and its station name
     fdata[[i]] <- read.csv(fname, header = TRUE, sep = ",")
   }
@@ -37,34 +66,12 @@ for (stn in list_recent)  {
 aug_jul = c("Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul")
 A_J <- c("A","S", "O", "N", "D", "J", "F", "M", "A", "M", "J", "J")
 
-#### Analysis
-# # Time series for Alert YLT
-# ylt <- fdata[[2]]
-# ylt.date <- as.Date(ylt[,1])
-# ylt_snow <- zoo(ylt[,3],ylt.date)
-# 
-# # Average by month, separate years
-# ylt_mean_bymonth <- aggregate(ylt_snow, format(time(ylt_snow), "%m"), mean, na.rm = TRUE)
-# ylt_sd_bymonth <- aggregate(ylt_snow, format(time(ylt_snow), "%m"), sd, na.rm = TRUE)
-# 
-# # Rearrange to start from August to July
-# ylt_mean_bymonth_aug <- zoo(ylt_mean_bymonth,c(6:12,1:5))
-# ylt_sd_bymonth_aug <- zoo(ylt_sd_bymonth, c(6:12,1:5))                         
-# aug_jul <- c("A", "S", "O", "N", "D", "J", "F", "M", "A", "M", "J", "J")
-# 
-# # Plot monthly average starting from August
-# plot(ylt_mean_bymonth_aug, xaxt = "n")
-# errbar(xaxt = "n",  xlab = "Month", ylab = "Snow depth (cm)", ylim = c(0,60), type ="o", 1:12,ylt_mean_bymonth_aug,ylt_mean_bymonth_aug + ylt_sd_bymonth_aug, ylt_mean_bymonth_aug - ylt_sd_bymonth_aug)
-# axis(side = 1, labels = aug_jul[1:12], at = 1:12)
 
-
-##############################################
-##############################################
-# Time series for any
-for (x in 1:8)
-  {title <- paste(list_recent[x], collapse = '')
+# construct Time series for all stations
+for (x in 1:length(list_stn)) {
+  stn_title <- gsub('([[:punct:]])|\\s+', '_', list_stn[x])
 stn <- fdata[[x]]
-stn.date <- as.Date(stn[,1])
+stn.date <- as.Date(stn[,1]) #, format = "%Y-%m-%d")
 #stn_snow <- zoo(stn[,3],stn.date)
 stn_snow <- data.frame(date = stn.date, snow_depth = stn[,3])#, order.by = as.yearmon(stn.date))
 
@@ -75,28 +82,49 @@ stn_snow <- data.frame(date = stn.date, snow_depth = stn[,3])#, order.by = as.ye
 stn_mean_bymonth <- monthlyfunction(stn_snow, FUN = mean, na.rm = TRUE) %>% data.frame()
 stn_sd_bymonth <- monthlyfunction(stn_snow, FUN = sd, na.rm = TRUE) %>% data.frame()
 
-if (length(stn_mean_bymonth) >= 11) {
+if (all(aug_jul %in% colnames(stn_mean_bymonth)) == TRUE ) {
 stn_mean_bymonth_aug <- stn_mean_bymonth[aug_jul[2:12]] %>% as.numeric()
 stn_sd_bymonth_aug <- stn_sd_bymonth[aug_jul[2:12]] %>% as.numeric()
 
-} else if (length(stn_mean_bymonth) < 11) {
-  paste(x, title, "Missing Sep!!") %>% print()
-  print("set Aug and Sep to NA")
-  stn_mean_bymonth_aug <- c('Sep' = Inf, stn_mean_bymonth[aug_jul[-(1:2)]]) %>% as.numeric()
-  stn_sd_bymonth_aug <- c('Sep' = Inf, stn_sd_bymonth[aug_jul[-(1:2)]]) %>% as.numeric()
-}
+} else {
+  missing <- setdiff(aug_jul, names(stn_mean_bymonth))
+  # paste(x, stn_title, "Missing Sep!!") %>% print()
+  # print("set Aug and Sep to NA")
+  stn_mean_bymonth[missing] <- Inf
+  stn_sd_bymonth[missing] <- Inf
+  stn_mean_bymonth_aug <- stn_mean_bymonth[aug_jul[2:12]] %>% as.numeric()
+  stn_sd_bymonth_aug <- stn_sd_bymonth[aug_jul[2:12]] %>% as.numeric()
+} 
+# else if (length(stn_mean_bymonth) < 10) {
+#   paste("!!!", x, stn_title, "Too few month, check") %>% print()
+#   next()
+# }
+
 # Plot monthly averages
-pdf(paste(title, '.pdf', collapse = ''))
-png(paste(title, '.png', collapse = ''))
+svdir <- "d:/phd/caa/output/graphs/monthly_series"
+setwd(svdir)
+
+pdf(paste(stn_title, '.pdf', sep = ''))
+png(paste(stn_title, '.png', sep = ''))
 errbar(1:11, stn_mean_bymonth_aug, stn_mean_bymonth_aug + stn_sd_bymonth_aug, stn_mean_bymonth_aug - stn_sd_bymonth_aug,
        xaxt = "n",  xlab = "Month", ylab = "Snow depth (cm)", ylim = c(0,60), type = "o")
 axis(side = 1, labels = A_J[2:12], at = 1:11)
-title(main = title)
+title(main = stn_title)
+dev.off()
 dev.off()
 }
 
-
-
+# for (x in c(2,6,18:20,22:24,26:28,31)){
+#   stn_title <- gsub('([[:punct:]])|\\s+', '_', list_stn[x])
+#   stn <- fdata[[x]]
+#   stn.date <- as.Date(stn[,1]) #, format = "%Y-%m-%d")
+#   #stn_snow <- zoo(stn[,3],stn.date)
+#   stn_snow <- data.frame(date = stn.date, snow_depth = stn[,3])#, order.by = as.yearmon(stn.date))
+#   stn_mean_bymonth <- monthlyfunction(stn_snow, FUN = mean, na.rm = TRUE) %>% data.frame()
+#   stn_sd_bymonth <- monthlyfunction(stn_snow, FUN = sd, na.rm = TRUE) %>% data.frame()
+#   
+# }
+########################
 #stn_sd_bymonth <- aggregate(stn_snow, format(time(stn_snow), "%m"), sd, na.rm = TRUE) %>%
 #  coredata() # convert from zoo (time-ordered) to matrix/vector
 
@@ -120,7 +148,7 @@ dev.off()
 # errbar(1:11, stn_mean_bymonth_sep[,2],stn_mean_bymonth_sep[,2] + stn_sd_bymonth_sep[,2], stn_mean_bymonth_sep[,2] - stn_sd_bymonth_sep[,2],
 #        xaxt = "n",  xlab = "Month", ylab = "Snow depth (cm)", ylim = c(0,60), type ="o")
 # axis(side = 1, labels = sep_jul[1:11], at = 1:11)
-# title(main = title)
+# title(main = stn_title)
 #dev.off()
 
 #plot(stn_mean_bymonth_aug[1:12], xaxt = "n")
