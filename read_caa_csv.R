@@ -21,20 +21,22 @@ setwd(wdir)
 idname <- read.csv(file = "_ID_NAME.csv", header = TRUE, sep = ",")
 
 # List of stations in CAA with 2016 data
-list_stn <- list("CAPE PARRY ZUE", 
+list_stn <- list(
+  # West of 100W, no 2016
+                "CAPE PARRY ZUE", 
                  "COPPERMINE YCO",
                  "HOLMAN ISLAND YHI",
                  "ISACHSEN (OLD ICE) IC1",
                  "ISACHSEN YIC",
                  "LADY FRANKLIN POINT YUJ",
                  "MOULD BAY YMD",
-                 "SACHS HARBOUR YSY", # West of 100W, no 2016
-                 ####
+                 "SACHS HARBOUR YSY", 
+# current stations up to 2016
                  "ALERT LT1", "ALERT YLT", "CAMBRIDGE BAY YCB", "CORAL HARBOUR YZS", "EUREKA WEU", "HALL BEACH YUX", "IQALUIT YFB", "RESOLUTE YRB", # with 2016 data
-                 ####
+# East of 100W, in hudson bay, no 2016
                 "ARCTIC BAY YAB",
-"CAPE DORSET YTE",
-"CHESTERFIELD INLET YCS",
+                "CAPE DORSET YTE",
+                "CHESTERFIELD INLET YCS",
                  "CHURCHILL YYQ",
                  "CLYDE YCY",
                  "GLADMAN POINT YUR",
@@ -48,7 +50,11 @@ list_stn <- list("CAPE PARRY ZUE",
                  "QUAQTAQ HA1",
                  "QUAQTAQ YHA",
                  "SHEPHERD BAY YUS",
-                 "SPENCE BAY YNC" # East of 100W, in hudson bay, no 2016
+                 "SPENCE BAY YNC", 
+#inland stations for comparison
+                  "BAKER LAKE YBK",
+                  "INUVIK YEV"
+# Further southeast around Labrador sea/PEI?
 )
 
 i = 0
@@ -84,11 +90,11 @@ stn_snow <- data.frame(date = stn.date, snow_depth = stn[,3])#, order.by = as.ye
 stn_mean_bymonth <- monthlyfunction(stn_snow, FUN = mean, na.rm = TRUE) %>% data.frame()
 stn_sd_bymonth <- monthlyfunction(stn_snow, FUN = sd, na.rm = TRUE) %>% data.frame()
 
-if (all(aug_jul %in% colnames(stn_mean_bymonth)) == TRUE ) {
-stn_mean_bymonth_aug <- stn_mean_bymonth[aug_jul[2:12]] %>% as.numeric()
-stn_sd_bymonth_aug <- stn_sd_bymonth[aug_jul[2:12]] %>% as.numeric()
-
-} else {
+# if (all(aug_jul %in% colnames(stn_mean_bymonth)) == TRUE ) {
+# stn_mean_bymonth_aug <- stn_mean_bymonth[aug_jul[2:12]] %>% as.numeric()
+# stn_sd_bymonth_aug <- stn_sd_bymonth[aug_jul[2:12]] %>% as.numeric()
+# 
+# } else {
   missing <- setdiff(aug_jul, names(stn_mean_bymonth))
   # paste(x, stn_title, "Missing Sep!!") %>% print()
   # print("set Aug and Sep to NA")
@@ -96,39 +102,35 @@ stn_sd_bymonth_aug <- stn_sd_bymonth[aug_jul[2:12]] %>% as.numeric()
   stn_sd_bymonth[missing] <- Inf
   stn_mean_bymonth_aug <- stn_mean_bymonth[aug_jul[2:12]] %>% as.numeric()
   stn_sd_bymonth_aug <- stn_sd_bymonth[aug_jul[2:12]] %>% as.numeric()
-} 
+#} 
 
 # Linear regression for accumulation season
-lm.a <- lm(stn_mean_bymonth_aug~aug_jul)
+lm.a <- lm(stn_mean_bymonth_aug[-(10:11)]~c(1:9)) #Linear regression for Sep to May
 summary(lm.a)
-#########
-# else if (length(stn_mean_bymonth) < 10) {
-#   paste("!!!", x, stn_title, "Too few month, check") %>% print()
-#   next()
-# }
 
-# Plot monthly averages
+#############
+##Plot monthly averages
 # svdir <- "d:/phd/caa/output/graphs/monthly_series"
 # setwd(svdir)
 # 
 # pdf(paste(stn_title, '.pdf', sep = ''))
 # png(paste(stn_title, '.png', sep = ''))
 # errbar(1:11, stn_mean_bymonth_aug, stn_mean_bymonth_aug + stn_sd_bymonth_aug, stn_mean_bymonth_aug - stn_sd_bymonth_aug,
-#        xaxt = "n",  xlab = "Month", ylab = "Snow depth (cm)", ylim = c(0,60), type = "o")
+#         xaxt = "n",  xlab = "Month", ylab = "Snow depth (cm)", ylim = c(0,60), type = "o")
 # axis(side = 1, labels = A_J[2:12], at = 1:11)
 # title(main = stn_title)
 # dev.off()
 # dev.off()
 ########
 # plot entire ts
-svdir <- "d:/phd/caa/output/graphs/whole_ts"
-setwd(svdir)
-pdf(paste(stn_title, '_all_ts.pdf', sep = ''))
-png(paste(stn_title, '_all_ts.png', sep = ''))
-plot(stn_snow,  xlab = "Year", ylab = "Snow depth (cm)", ylim = c(0,100), type = "o")
-title(main = stn_title)
-dev.off()
-dev.off()
+# svdir <- "d:/phd/caa/output/graphs/whole_ts"
+# setwd(svdir)
+# pdf(paste(stn_title, '_all_ts.pdf', sep = ''))
+# png(paste(stn_title, '_all_ts.png', sep = ''))
+# plot(stn_snow,  xlab = "Year", ylab = "Snow depth (cm)", ylim = c(0,100), type = "o")
+# title(main = stn_title)
+# dev.off()
+# dev.off()
 
 
 }
