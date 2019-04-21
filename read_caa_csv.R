@@ -14,7 +14,8 @@ library(stringr)
 library(dplyr)
 library(lubridate)
 #### set working directory
-wdir <- "d:/phd/caa/data/station/csv/"
+Mdir <- "d:/phd/caa/"
+wdir <- paste(Mdir, "data/station/csv/", sep = "")
 setwd(wdir)
 
 #### Reading data
@@ -80,11 +81,24 @@ for (x in 1:length(list_stn)) {
   stn_title <- gsub('([[:punct:]])|\\s+', '_', list_stn[x])
 stn <- fdata[[x]]
 stn.date <- as.Date(stn[,1]) #, format = "%Y-%m-%d")
-#stn_snow <- zoo(stn[,3],stn.date)
 stn_snow <- data.frame(date = stn.date, snow_depth = stn[,3])#, order.by = as.yearmon(stn.date))
 
+# ## Average by month in each year
+xts.stn_snow <- xts(stn[,3],stn.date)
+stn_mean_byyearmonth <- apply.monthly(xts.stn_snow, mean)
 
-# Average by month, separate years
+svdir <- paste(Mdir, "output/graphs/whole_ts/monthly/", sep = "")
+setwd(svdir)
+pdf(paste(stn_title, '_month_ts.pdf', sep = ''))
+png(paste(stn_title, '_month_ts.png', sep = ''))
+plot(stn_mean_byyearmonth, main = stn_title, type = "o", ylim = c(1,100), grid.col = NA, yaxis.right = FALSE, axis = 2)
+#axis(side = 1, labels = A_J[2:12], at = 1:11)
+dev.off()
+dev.off()
+
+
+
+# Average by month from all years
 #/# stn_mean_bymonth <- aggregate(stn_snow, format(time(stn_snow), "%m"), mean, na.rm = TRUE) %>%
 #  coredata() # convert from zoo (time-ordered) to matrix/vector
 stn_mean_bymonth <- monthlyfunction(stn_snow, FUN = mean, na.rm = TRUE) %>% data.frame()
@@ -98,32 +112,45 @@ stn_sd_bymonth <- monthlyfunction(stn_snow, FUN = sd, na.rm = TRUE) %>% data.fra
   missing <- setdiff(aug_jul, names(stn_mean_bymonth))
   # paste(x, stn_title, "Missing Sep!!") %>% print()
   # print("set Aug and Sep to NA")
-  stn_mean_bymonth[missing] <- Inf
-  stn_sd_bymonth[missing] <- Inf
-  stn_mean_bymonth_aug <- stn_mean_bymonth[aug_jul[2:12]] %>% as.numeric()
-  stn_sd_bymonth_aug <- stn_sd_bymonth[aug_jul[2:12]] %>% as.numeric()
+  stn_mean_bymonth[missing] <- NA
+  stn_sd_bymonth[missing] <- NA
+  stn_mean_bymonth_aug <- stn_mean_bymonth[aug_jul] %>% as.numeric()
+  stn_sd_bymonth_aug <- stn_sd_bymonth[aug_jul] %>% as.numeric()
 #} 
 
 # Linear regression for accumulation season
-lm.a <- lm(stn_mean_bymonth_aug[-(10:11)]~c(1:9)) #Linear regression for Sep to May
-summary(lm.a)
+lm.acc <- lm(stn_mean_bymonth_aug[2:10]~c(1:9), na.action = 'na.omit') #Linear regression for Sep to May
+tbl.snw <- data.frame('month'= aug_jul,'snowdepth'= stn_mean_bymonth_aug, 'sd' = stn_sd_bymonth_aug)
+stats.snw <- summary(lm.acc) #'Trend' = slp_sep_may)
+slp_sep_may <- coef(stats.snw)['c(1:9)','Estimate'] #getting slope
+std.err_sep_may <- coef(stats.snw)['c(1:9)','Std. Error'] #getting std error of regression
+r.sq <- stats.snw$adj.r.squared
 
+svdir <- paste(Mdir, "output/tables/snowdepth/", sep = "")
+setwd(svdir)
+write.csv(tbl.snw, file = paste(stn_title, '.csv', sep =''), na = "NA")
+
+svdir <- paste(Mdir, "output/tables/stats/", sep = "")
+setwd(svdir)
+capture.output(stats.snw, file = paste(stn_title, '_stats.txt', sep =''))
 #############
 ##Plot monthly averages
-# svdir <- "d:/phd/caa/output/graphs/monthly_series"
-# setwd(svdir)
-# 
-# pdf(paste(stn_title, '.pdf', sep = ''))
-# png(paste(stn_title, '.png', sep = ''))
-# errbar(1:11, stn_mean_bymonth_aug, stn_mean_bymonth_aug + stn_sd_bymonth_aug, stn_mean_bymonth_aug - stn_sd_bymonth_aug,
-#         xaxt = "n",  xlab = "Month", ylab = "Snow depth (cm)", ylim = c(0,60), type = "o")
-# axis(side = 1, labels = A_J[2:12], at = 1:11)
-# title(main = stn_title)
-# dev.off()
-# dev.off()
+svdir <- paste(Mdir, "output/graphs/monthly_series", sep = "")
+setwd(svdir)
+lgd.txt <- c(paste("Slope =", round(slp_sep_may, digit = 2), "±",
+                   round(std.err_sep_may, digits = 2)), paste("R-square =", round(r.sq, digits = 3)))
+pdf(paste(stn_title, '.pdf', sep = ''))
+png(paste(stn_title, '.png', sep = ''))
+errbar(1:11, stn_mean_bymonth_aug[2:12], stn_mean_bymonth_aug[2:12] + stn_sd_bymonth_aug[2:12], stn_mean_bymonth_aug[2:12] - stn_sd_bymonth_aug[2:12],
+        xaxt = "n",  xlab = "Month", ylab = "Snow depth (cm)", ylim = c(0,60), type = "o")
+legend("topleft", legend = lgd.txt, bty = "n")
+axis(side = 1, labels = A_J[2:12], at = 1:11)
+title(main = stn_title)
+dev.off()
+dev.off()
 ########
-# plot entire ts
-# svdir <- "d:/phd/caa/output/graphs/whole_ts"
+# ##plot entire ts
+# svdir <- paste(Mdir, "output/graphs/whole_ts/all/", sep = "")
 # setwd(svdir)
 # pdf(paste(stn_title, '_all_ts.pdf', sep = ''))
 # png(paste(stn_title, '_all_ts.png', sep = ''))
