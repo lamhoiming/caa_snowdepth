@@ -13,6 +13,9 @@ library(hydroTSM) #for monthlyfunction()
 library(stringr)
 library(dplyr)
 library(lubridate)
+
+
+
 #### set working directory
 Mdir <- "d:/phd/caa/"
 wdir <- paste(Mdir, "data/station/csv/", sep = "")
@@ -84,15 +87,50 @@ stn.date <- as.Date(stn[,1]) #, format = "%Y-%m-%d")
 stn_snow <- data.frame(date = stn.date, snow_depth = stn[,3])#, order.by = as.yearmon(stn.date))
 
 # ## Average by month in each year
+
 xts.stn_snow <- xts(stn[,3],stn.date)
 stn_mean_byyearmonth <- apply.monthly(xts.stn_snow, mean)
+index(stn_mean_byyearmonth) <- as.yearmon(index(stn_mean_byyearmonth))
+cycle(stn_mean_byyearmonth)
 
+
+### Montly trend
+svdir <- paste(Mdir, "output/graphs/trend/monthly/", sep = "")
+setwd(svdir)
+# cnames <- unique(format(index(stn_mean_byyearmonth), "%Y"))
+# df <- data.frame(matrix(nrow = 12, ncol = length(cnames)))
+# colnames(df) <- cnames
+# rownames(df) <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", 
+#                   "Aug", "Sep", "Oct", "Nov", "Dec")
+rnames <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", 
+                                     "Aug", "Sep", "Oct", "Nov", "Dec")
+for (mth in 1:12) {  #monthly trend
+  if (any(cycle(stn_mean_byyearmonth) == mth)){
+    dfmth <- subset(stn_mean_byyearmonth, cycle(stn_mean_byyearmonth) == mth)
+    write.csv(dfmth, file = paste(stn_title, '_', rnames[mth], '.csv', sep =''), row.names = format(index(dfmth), "%Y"), na = "NA")
+    
+  
+} else {
+    next
+    }
+    
+  # plot(dec, main = stn_title, type = "o", ylim = c(-1,100), 
+  #           grid.col = NA, yaxis.right = FALSE, axis = 2, las = 2, mar = c(6,4,4,2)) %>% print()
+ 
+}
+#dev.off()
+#dev.off()
+
+
+#### Monthly ts
 svdir <- paste(Mdir, "output/graphs/whole_ts/monthly/", sep = "")
 setwd(svdir)
 pdf(paste(stn_title, '_month_ts.pdf', sep = ''))
-png(paste(stn_title, '_month_ts.png', sep = ''))
-plot(stn_mean_byyearmonth, main = stn_title, type = "o", ylim = c(1,100), grid.col = NA, yaxis.right = FALSE, axis = 2)
-#axis(side = 1, labels = A_J[2:12], at = 1:11)
+png(paste(stn_title, '_month_ts.png', sep = ''), width=800, height=567, units="px")
+plot(stn_mean_byyearmonth, main = stn_title, type = "o", ylim = c(-1,100), 
+                    grid.col = NA, yaxis.right = FALSE, axis = 2, las = 2, mar = c(6,4,4,2)) %>% print()
+# tcks = c (0, 20, 40, 60, 80)
+# axis(side = 2, labels = tcks, at = tcks)
 dev.off()
 dev.off()
 
@@ -140,7 +178,7 @@ setwd(svdir)
 lgd.txt <- c(paste("Slope =", round(slp_sep_may, digit = 2), "±",
                    round(std.err_sep_may, digits = 2)), paste("R-square =", round(r.sq, digits = 3)))
 pdf(paste(stn_title, '.pdf', sep = ''))
-png(paste(stn_title, '.png', sep = ''))
+png(paste(stn_title, '.png', sep = ''), width=800, height=800, units="px")
 errbar(1:11, stn_mean_bymonth_aug[2:12], stn_mean_bymonth_aug[2:12] + stn_sd_bymonth_aug[2:12], stn_mean_bymonth_aug[2:12] - stn_sd_bymonth_aug[2:12],
         xaxt = "n",  xlab = "Month", ylab = "Snow depth (cm)", ylim = c(0,60), type = "o")
 legend("topleft", legend = lgd.txt, bty = "n")
@@ -153,7 +191,7 @@ dev.off()
 # svdir <- paste(Mdir, "output/graphs/whole_ts/all/", sep = "")
 # setwd(svdir)
 # pdf(paste(stn_title, '_all_ts.pdf', sep = ''))
-# png(paste(stn_title, '_all_ts.png', sep = ''))
+# png(paste(stn_title, '_all_ts.png', sep = ''), width=800, height=567, units="px")
 # plot(stn_snow,  xlab = "Year", ylab = "Snow depth (cm)", ylim = c(0,100), type = "o")
 # title(main = stn_title)
 # dev.off()
