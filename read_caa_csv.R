@@ -78,6 +78,21 @@ for (s in list_stn)  {
 aug_jul = c("Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul")
 A_J <- c("A","S", "O", "N", "D", "J", "F", "M", "A", "M", "J", "J")
 
+####################
+###### Switch ######
+####################
+
+do.monthtrend == TRUE
+do.monthts == TRUE
+do.monthseries == TRUE
+do.entirets == TRUE
+
+
+
+
+####################
+
+
 
 # construct Time series for all stations
 for (x in 1:length(list_stn)) {
@@ -88,28 +103,62 @@ stn_snow <- data.frame(date = stn.date, snow_depth = stn[,3])#, order.by = as.ye
 
 # ## Average by month in each year
 
+if (do.monthtrend == TRUE) {
 xts.stn_snow <- xts(stn[,3],stn.date)
 stn_mean_byyearmonth <- apply.monthly(xts.stn_snow, mean)
+stn_sd_byyearmonth <- apply.monthly(xts.stn_snow, sd)
+
 index(stn_mean_byyearmonth) <- as.yearmon(index(stn_mean_byyearmonth))
-cycle(stn_mean_byyearmonth)
+index(stn_sd_byyearmonth) <- as.yearmon(index(stn_sd_byyearmonth))
+
+#cycle(stn_mean_byyearmonth)
 
 
 ### Montly trend
-svdir <- paste(Mdir, "output/graphs/trend/monthly/", sep = "")
-setwd(svdir)
+
 # cnames <- unique(format(index(stn_mean_byyearmonth), "%Y"))
 # df <- data.frame(matrix(nrow = 12, ncol = length(cnames)))
 # colnames(df) <- cnames
 # rownames(df) <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", 
 #                   "Aug", "Sep", "Oct", "Nov", "Dec")
-rnames <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", 
-                                     "Aug", "Sep", "Oct", "Nov", "Dec")
+rnames <- toupper(c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", 
+                                     "Aug", "Sep", "Oct", "Nov", "Dec"))
+
+svdir <- paste(Mdir, "output/graphs/trend/monthly/", sep = "")
+setwd(svdir)
 for (mth in 1:12) {  #monthly trend
   if (any(cycle(stn_mean_byyearmonth) == mth)){
-    dfmth <- subset(stn_mean_byyearmonth, cycle(stn_mean_byyearmonth) == mth)
+    
+    dfmthmean <- subset(stn_mean_byyearmonth, cycle(stn_mean_byyearmonth) == mth)
+    dfmthsd <- subset(stn_sd_byyearmonth, cycle(stn_sd_byyearmonth) == mth)
+    
+    dfmth <- cbind("mean" = dfmthmean,"sd" = dfmthsd)
     write.csv(dfmth, file = paste(stn_title, '_', rnames[mth], '.csv', sep =''), row.names = format(index(dfmth), "%Y"), na = "NA")
     
-  
+    trd <- read.csv(file = paste(stn_title, '_', rnames[mth], '.csv', sep =''), col.names = c("yr", "mean", "sd"))
+    lm.trd <- lm(trd$mean~trd$yr, na.action = 'na.omit')
+    
+    # stats.trd <- summary(lm.trd)
+    # #if (is.na(coef(stats.trd))
+    # slp_trd <- coef(stats.trd)['trd$yr','Estimate'] #getting slope
+    # std.err_trd <- coef(stats.trd)['trd$yr','Std. Error'] #getting std error of regression
+    # r.sq_trd <- stats.trd$adj.r.squared
+    # # 
+    # lgd.trd <- c(paste("Slope =", round(slp_trd, digit = 2), "±",
+    #                     round(std.err_trd, digits = 2)), paste("R-square =", round(r.sq_trd, digits = 3)))
+    # # 
+    svdir <- paste(Mdir, "output/graphs/trend/monthly/", sep = "")
+    setwd(svdir)
+    pdf(paste(stn_title, '_', rnames[mth], '_month_trend.pdf', sep = ''))
+    png(paste(stn_title, '_', rnames[mth], '_month_trend.png', sep = ''), width=800, height=567, units="px")
+    
+    errbar(trd$yr, trd$mean, trd$mean + trd$sd, trd$mean - trd$sd, ylim = c(0,100), las = 1, type = "o", xlab = "Year", ylab = "Snow depth (cm)")
+    title(main = paste(stn_title, rnames[mth], sep = " "))
+    #legend("topleft", legend = lgd.trd, bty = "n")
+    #abline(lm.trd, col = "red")
+    
+    dev.off()
+    dev.off()
 } else {
     next
     }
@@ -117,25 +166,29 @@ for (mth in 1:12) {  #monthly trend
   # plot(dec, main = stn_title, type = "o", ylim = c(-1,100), 
   #           grid.col = NA, yaxis.right = FALSE, axis = 2, las = 2, mar = c(6,4,4,2)) %>% print()
  
+
+  }
 }
 #dev.off()
 #dev.off()
 
 
 #### Monthly ts
+if (do.monthts == TRUE) {
 svdir <- paste(Mdir, "output/graphs/whole_ts/monthly/", sep = "")
 setwd(svdir)
 pdf(paste(stn_title, '_month_ts.pdf', sep = ''))
 png(paste(stn_title, '_month_ts.png', sep = ''), width=800, height=567, units="px")
-plot(stn_mean_byyearmonth, main = stn_title, type = "o", ylim = c(-1,100), 
+plot(stn_mean_byyearmonth, main = stn_title, type = "l", ylim = c(-1,100), 
                     grid.col = NA, yaxis.right = FALSE, axis = 2, las = 2, mar = c(6,4,4,2)) %>% print()
 # tcks = c (0, 20, 40, 60, 80)
 # axis(side = 2, labels = tcks, at = tcks)
 dev.off()
 dev.off()
+}
 
 
-
+if (do.monthseries == TRUE) {
 # Average by month from all years
 #/# stn_mean_bymonth <- aggregate(stn_snow, format(time(stn_snow), "%m"), mean, na.rm = TRUE) %>%
 #  coredata() # convert from zoo (time-ordered) to matrix/vector
@@ -159,7 +212,7 @@ stn_sd_bymonth <- monthlyfunction(stn_snow, FUN = sd, na.rm = TRUE) %>% data.fra
 # Linear regression for accumulation season
 lm.acc <- lm(stn_mean_bymonth_aug[2:10]~c(1:9), na.action = 'na.omit') #Linear regression for Sep to May
 tbl.snw <- data.frame('month'= aug_jul,'snowdepth'= stn_mean_bymonth_aug, 'sd' = stn_sd_bymonth_aug)
-stats.snw <- summary(lm.acc) #'Trend' = slp_sep_may)
+stats.snw <- summary(lm.acc)
 slp_sep_may <- coef(stats.snw)['c(1:9)','Estimate'] #getting slope
 std.err_sep_may <- coef(stats.snw)['c(1:9)','Std. Error'] #getting std error of regression
 r.sq <- stats.snw$adj.r.squared
@@ -171,22 +224,33 @@ write.csv(tbl.snw, file = paste(stn_title, '.csv', sep =''), na = "NA")
 svdir <- paste(Mdir, "output/tables/stats/", sep = "")
 setwd(svdir)
 capture.output(stats.snw, file = paste(stn_title, '_stats.txt', sep =''))
+
 #############
-##Plot monthly averages
+##Plot monthly averages seasonal trend
 svdir <- paste(Mdir, "output/graphs/monthly_series", sep = "")
 setwd(svdir)
-lgd.txt <- c(paste("Slope =", round(slp_sep_may, digit = 2), "±",
+
+lgd.snw <- c(paste("Slope =", round(slp_sep_may, digit = 2), "±",
                    round(std.err_sep_may, digits = 2)), paste("R-square =", round(r.sq, digits = 3)))
+
 pdf(paste(stn_title, '.pdf', sep = ''))
 png(paste(stn_title, '.png', sep = ''), width=800, height=800, units="px")
+
 errbar(1:11, stn_mean_bymonth_aug[2:12], stn_mean_bymonth_aug[2:12] + stn_sd_bymonth_aug[2:12], stn_mean_bymonth_aug[2:12] - stn_sd_bymonth_aug[2:12],
         xaxt = "n",  xlab = "Month", ylab = "Snow depth (cm)", ylim = c(0,60), type = "o")
-legend("topleft", legend = lgd.txt, bty = "n")
+# clip(1,9, -100,200)
+# abline(lm.acc, col = "red")
+legend("topleft", legend = lgd.snw, bty = "n")
 axis(side = 1, labels = A_J[2:12], at = 1:11)
 title(main = stn_title)
+
+
 dev.off()
 dev.off()
-########
+}
+
+if (do.entirets == TRUE) {
+# ########
 # ##plot entire ts
 # svdir <- paste(Mdir, "output/graphs/whole_ts/all/", sep = "")
 # setwd(svdir)
@@ -196,12 +260,14 @@ dev.off()
 # title(main = stn_title)
 # dev.off()
 # dev.off()
-
+}
 
 }
 
 
 ########################
+### discard
+
 #stn_sd_bymonth <- aggregate(stn_snow, format(time(stn_snow), "%m"), sd, na.rm = TRUE) %>%
 #  coredata() # convert from zoo (time-ordered) to matrix/vector
 
