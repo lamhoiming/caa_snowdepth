@@ -86,9 +86,10 @@ A_J <- c("A","S", "O", "N", "D", "J", "F", "M", "A", "M", "J", "J")
 #################### Switch #################
 #############################################
 do.entirets <- FALSE #TRUE #          #######
-do.monthts <- FALSE #TRUE   #FALSE #         #######
-do.monthseries <-TRUE #  FALSE #      #######
-do.monthtrend <- FALSE #TRUE # FALSE #       #######
+do.monthts <- FALSE #TRUE   #FALSE #  #######
+do.monthseries <-  FALSE # TRUE #     #######
+do.monthtrend <-  FALSE #      TRUE # #######
+do.stackedbar <- TRUE # FALSE         #######
 #############################################
 #############################################
 
@@ -234,7 +235,7 @@ for (x in 1:length(list_stn)) {
     
     stats.out <- data.frame()
     
-    if (
+    if (#x ==32
         x == 4 | x == 24 | x == 32
         # stn_title == "ISACHSEN_OLD_ICE_IC1" |   #no trend by month
         # stn_title == "INUKJUAK_WPH" |           #no trend by month
@@ -247,7 +248,7 @@ for (x in 1:length(list_stn)) {
           
           dfmthmean <- subset(stn_mean_byyearmonth, cycle(stn_mean_byyearmonth) == mth)
           dfmthsd <- subset(stn_sd_byyearmonth, cycle(stn_sd_byyearmonth) == mth)
-          if (length(dfmthmean) < 7) { # At least 7 years of data to plot trend
+          if (length(dfmthmean) < 6) { # At least 7 years of data to plot trend
             next
           } 
           else {
@@ -332,6 +333,145 @@ for (x in 1:length(list_stn)) {
   }
   
   ################################################
+  
+  ##### Stacked barcharts
+  if (do.stackedbar == TRUE) {
+    xts.stn_snow <- xts(stn[,3],stn.date)
+    
+  ##### functions
+    endpoints.seasons <- function(x, on = "spring") {
+      if (timeBased(x)) {
+        NR <- length(x)
+        x <- xts(NULL, order.by = x)
+      }
+      else NR <- NROW(x)
+      if (!is.xts(x))
+        x <- try.xts(x, error = "must be either xts-coercible or timeBased")
+      
+      posixltindex <- as.POSIXlt(.POSIXct(.index(x)), tz = indexTZ(x))$mon
+      if (on == "winter") {
+        tocal <- c(0, 1, 2)
+      }
+      else if (on == "spring") {
+        tocal <- c(3, 4, 5, 6)
+      }
+      else if (on == "summer") {
+        tocal <- c(7)
+      }
+      else if (on == "autumn") {
+        tocal <- c(8, 9, 10, 11)
+      }
+      
+      xi <- rep(0, NR)
+      xi[posixltindex %in% tocal] <- 1
+      if(xi[1] == 1) {
+        ep <- as.integer(c(0, which(diff(xi) != 0)))
+      }else {
+        ep <- as.integer(which(diff(xi) != 0))
+      }
+      if(xi[NR] == 1) {
+        ep[length(ep) + 1] <- NR
+      }
+      ep
+    }
+    season.apply <- function(x, INDEX, FUN, ...)
+    {
+      x <- try.xts(x, error = FALSE)
+      FUN <- match.fun(FUN)
+      
+      re <- sapply(1:(length(INDEX)/2), function(y) {
+        FUN(x[(INDEX[y*2 - 1] + 1):(INDEX[y*2])], ...)
+      })
+      
+      if (is.vector(re))
+        re <- t(re)
+      re <- t(re)
+      if (is.null(colnames(re)) && NCOL(x) == NCOL(re))
+        colnames(re) <- colnames(x)
+      
+      SINDEX <- INDEX[seq(2, length(INDEX), by = 2)]
+      reclass(re, x[SINDEX])
+    }
+    apply.spring <- function(x, FUN, ...) {
+      ep <- endpoints.seasons(x, "spring")
+      season.apply(x, ep, FUN, ...)
+    }
+    apply.summer <- function(x, FUN, ...) {
+      ep <- endpoints.seasons(x, "summer")
+      season.apply(x, ep, FUN, ...)
+    }
+    apply.autumn <- function(x, FUN, ...) {
+      ep <- endpoints.seasons(x, "autumn")
+      season.apply(x, ep, FUN, ...)
+    }
+    apply.winter <- function(x, FUN, ...) {
+      ep <- endpoints.seasons(x, "winter")
+      season.apply(x, ep, FUN, ...)
+    }
+  ########
+    
+    sum.fall <- apply.autumn(xts.stn_snow, mean)
+    sum.winter <- apply.winter(xts.stn_snow, mean)
+    sum.spring <- apply.spring(xts.stn_snow, mean)
+    
+    index(sum.fall) <- as.yearmon(index(sum.fall))
+    index(sum.winter) <- as.yearmon(index(sum.winter))
+    index(sum.spring) <- as.yearmon(index(sum.spring))
+    
+    tmp.fall <- data.frame("Year" = format(index(sum.fall), "%Y"), "Fall" = sum.fall)
+    tmp.winter <- data.frame("Year" = format(index(sum.winter), "%Y"), "Winter" = sum.winter)
+    tmp.spring <- data.frame("Year" = format(index(sum.spring), "%Y"), "Spring" = sum.spring)
+    
+    df.stacked <- merge(merge(tmp.fall, tmp.winter, by = "Year", all.x = TRUE, all.y = TRUE), 
+                        tmp.spring, by = "Year", all.x = TRUE, all.y = TRUE)
+    
+    svdir <- paste(Mdir, "output/stacked_season_snowdepth/tables/", sep = "")
+    setwd(svdir)
+    write.csv(df.stacked, file = paste(stn_title, '_stacked_season.csv', sep =''), na = "NA")
+    
+    rn <- as.data.frame.integer(df.stacked$Year)
+    df.stacked <- df.stacked[order(rn),]
+    row.names(df.stacked) <- df.stacked[,1]
+    df.stacked <- df.stacked[,-1]
+    df.stacked[is.na(df.stacked)] <- 0 
+ 
+    
+    ytck <- seq(0, 1.5*max(t(as.matrix(df.stacked)), na.rm = TRUE), by = 5)
+    ylim <- c(0, 1.5*max(t(as.matrix(df.stacked)), na.rm = TRUE))
+    # ytck <- seq(0, 2.25*max(t(as.matrix(df.stacked)), na.rm = TRUE), by = 50)
+    # ylim <- c(0, 2.25*max(t(as.matrix(df.stacked)), na.rm = TRUE))
+    # 
+    # svdir <- paste(Mdir, "output/stacked_season_snowdepth/plots/", sep = "")
+    # setwd(svdir)
+    # pdf(paste(stn_title, '_stacked_season.pdf', sep = ''))
+    # png(paste(stn_title, '_stacked_season.png', sep = ''), width=1400, height=784, units="px")
+    svdir <- paste(Mdir, "output/stacked_season_snowdepth/plots/beside/", sep = "")
+    setwd(svdir)
+    pdf(paste(stn_title, '_stacked_season_beside.pdf', sep = ''))
+    png(paste(stn_title, '_stacked_season_beside.png', sep = ''), width=2000, height=784, units="px")
+    
+    mx <- t(as.matrix(df.stacked))
+    bp <- barplot.default(mx, beside = TRUE,
+                          ylim = ylim, yaxt = 'n', 
+                    legend	= names(df.stacked),
+                    args.legend = list('topright', bty = 'o', cex = 2), #x = ncol(mx), y = max(colSums(mx), na.rm = TRUE), bty = "n"),
+                    cex.names = 1.1)
+    # bp <- barplot.default(mx, col = c('red', 'blue', 'springgreen2'), width = 0.1,
+    #               beside = TRUE,
+    #         border="black", space=0.8, ylim = ylim, yaxt = 'n', 
+            # legend	= names(df.stacked),
+            # args.legend = list('topright', bty = 'o', cex = 2), #x = ncol(mx), y = max(colSums(mx), na.rm = TRUE), bty = "n"),
+            # cex.names = 1.1)
+    title(main = paste(stn_title, sep = " "))
+    axis(2, at = ytck, las = 2)
+    mtext("Snow depth (cm)", side = 2, cex.lab = 2, line = 3)
+    axis(1, at = bp[seq(2,length(bp), by = 3)], labels = rep('', length(rownames(df.stacked))))
+    mtext("Year", side = 1, cex.lab =1.5, line = 3)
+    
+    #colors()
+    dev.off()
+    dev.off()
+  }
   
 }
 
