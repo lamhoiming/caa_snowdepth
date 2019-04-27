@@ -87,9 +87,9 @@ A_J <- c("A","S", "O", "N", "D", "J", "F", "M", "A", "M", "J", "J")
 #############################################
 do.entirets <- FALSE #TRUE #          #######
 do.monthts <- FALSE #TRUE   #FALSE #  #######
-do.monthseries <-  FALSE # TRUE #     #######
-do.monthtrend <-  FALSE #      TRUE # #######
-do.stackedbar <- TRUE # FALSE         #######
+do.monthseries <-  FALSE #TRUE #      #######
+do.monthtrend <-   FALSE #    TRUE #  #######
+do.stackedbar <- TRUE # FALSE #FALSE         #######
 #############################################
 #############################################
 
@@ -194,14 +194,18 @@ for (x in 1:length(list_stn)) {
                  )
     
     pdf(paste(stn_title, 'seasonal_cycle.pdf', sep = ''))
-    png(paste(stn_title, 'seasonal_cycle.png', sep = ''), width=800, height=800, units="px")
+    png(paste(stn_title, 'seasonal_cycle.png', sep = ''), width=1600, height=1600, units="px")
     
     errbar(1:11, stn_mean_bymonth_aug[2:12], stn_mean_bymonth_aug[2:12] + stn_sd_bymonth_aug[2:12], stn_mean_bymonth_aug[2:12] - stn_sd_bymonth_aug[2:12],
-           xaxt = "n",  xlab = "Month", ylab = "Snow depth (cm)", ylim = c(0,60), type = "o")
+           xaxt = "n",  xlab = "", ylab = "", ylim = c(0,60), type = "o",
+           cex.axis = 2, cex = 2, 
+           mar = c(5, 9, 4, 2) + 0.1)
     # clip(1,9, -100,200)
     # abline(lm.acc, col = "red")
-    legend("topleft", legend = lgd.snw, bty = "n", cex = 1.5)
-    axis(side = 1, labels = A_J[2:12], at = 1:11)
+    legend("topleft", legend = lgd.snw, bty = "n", cex = 2.5)
+    axis(side = 1, labels = A_J[2:12], at = 1:11, cex.axis = 2, tck = 0.02)
+    mtext("Month", side = 1, cex = 2, line = 3.5)
+    mtext("Snow depth (cm)", side = 2, cex = 1.7, line = 2.85)
     title(main = stn_title)
     
     
@@ -281,12 +285,18 @@ for (x in 1:length(list_stn)) {
             setwd(svdir)
             pdf(paste(stn_title, '_', rnames[mth], '_all_yr_avg.pdf', sep = ''))
             png(paste(stn_title, '_', rnames[mth], '_all_yr_avg.png', sep = ''), 
-                width = 800, height = 567, units="px")
+                width = 1600, height = 1134, units="px")
+            
             
             errbar(trd$yr, trd$mean, trd$mean + trd$sd, trd$mean - trd$sd, 
-                   ylim = c(0,100), las = 1, xlab = "Year", ylab = "Snow depth (cm)")  #type = "o"
+                   ylim = c(0,100), las = 1, xlab = "", ylab = "",
+                   cex.axis = 1.8, cex = 2,
+                   mar = c(5, 9, 4, 2) + 0.1)  #type = "o"
+            
             title(main = paste(stn_title, rnames[mth], sep = " "))
-            legend("topright", legend = lgd.trd, bty = "n", cex = 1.5)
+            mtext("Year", side = 1, cex = 2, line = 3.5)
+            mtext("Snow depth (cm)", side = 2, cex = 1.7, line = 2.7)
+            legend("topright", legend = lgd.trd, bty = "n", cex = 2)
             abline(lm.trd, col = "red")
             
             dev.off()
@@ -315,16 +325,23 @@ for (x in 1:length(list_stn)) {
     setwd(svdir)
     pdf(paste(stn_title, '_trd_vs_mth.pdf', sep = ''))
     png(paste(stn_title, '_trd_vs_mth.png', sep = ''), 
-        width = 800, height = 800, units="px")
+        width = 1600, height = 1600, units="px")
     
     errbar(1:11, stats.out$Trend[2:12], 
            stats.out$Trend[2:12] + stats.out$Std.err[2:12], stats.out$Trend[2:12] - stats.out$Std.err[2:12],
-           ylim = c(-3,3), las = 1, xlab = "Month", ylab = "Trend (cm/year)", xaxt = "n")
+           ylim = c(-3,3), xaxt = "n",
+           xlab = '', ylab = '',
+           cex = 2,
+           las = 1, cex.axis = 2,
+           mar = c(5, 9, 4, 2) + 0.1)
+    
     title(main = paste(stn_title, sep = " "))
-    axis(side = 1, labels = A_J[2:12], at = 1:11)
+    axis(side = 1, labels = A_J[2:12], at = 1:11, cex.axis = 2, tck = 0.02)
+    mtext("Month", side = 1, cex = 2, line = 3.5)
+    mtext("Trend (cm/year)", side = 2, cex = 2, line = 2.5)
     lgd.startend = c(paste("start :", index(stn_mean_byyearmonth)[1]), 
                      paste(" end :", index(stn_mean_byyearmonth)[length(index(stn_mean_byyearmonth))]))
-    legend("topright", legend = lgd.startend, bty = "n", cex = 1.5)
+    legend("topright", legend = lgd.startend, bty = "n", cex = 2.5)
     abline(0,0)
     
     dev.off()
@@ -353,10 +370,10 @@ for (x in 1:length(list_stn)) {
         tocal <- c(0, 1, 2)
       }
       else if (on == "spring") {
-        tocal <- c(3, 4, 5, 6)
+        tocal <- c(3, 4, 5)
       }
       else if (on == "summer") {
-        tocal <- c(7)
+        tocal <- c(6, 7)
       }
       else if (on == "autumn") {
         tocal <- c(8, 9, 10, 11)
@@ -373,7 +390,7 @@ for (x in 1:length(list_stn)) {
         ep[length(ep) + 1] <- NR
       }
       ep
-    }
+    }#define seasonal months
     season.apply <- function(x, INDEX, FUN, ...)
     {
       x <- try.xts(x, error = FALSE)
@@ -410,17 +427,17 @@ for (x in 1:length(list_stn)) {
     }
   ########
     
-    sum.fall <- apply.autumn(xts.stn_snow, mean)
-    sum.winter <- apply.winter(xts.stn_snow, mean)
-    sum.spring <- apply.spring(xts.stn_snow, mean)
+    mean.fall <- apply.autumn(xts.stn_snow, mean)
+    mean.winter <- apply.winter(xts.stn_snow, mean)
+    mean.spring <- apply.spring(xts.stn_snow, mean)
     
-    index(sum.fall) <- as.yearmon(index(sum.fall))
-    index(sum.winter) <- as.yearmon(index(sum.winter))
-    index(sum.spring) <- as.yearmon(index(sum.spring))
+    index(mean.fall) <- as.yearmon(index(mean.fall))
+    index(mean.winter) <- as.yearmon(index(mean.winter))
+    index(mean.spring) <- as.yearmon(index(mean.spring))
     
-    tmp.fall <- data.frame("Year" = format(index(sum.fall), "%Y"), "Fall" = sum.fall)
-    tmp.winter <- data.frame("Year" = format(index(sum.winter), "%Y"), "Winter" = sum.winter)
-    tmp.spring <- data.frame("Year" = format(index(sum.spring), "%Y"), "Spring" = sum.spring)
+    tmp.fall <- data.frame("Year" = format(index(mean.fall), "%Y"), "Fall - SOND" = mean.fall)
+    tmp.winter <- data.frame("Year" = format(index(mean.winter), "%Y"), "Winter - JFM" = mean.winter)
+    tmp.spring <- data.frame("Year" = format(index(mean.spring), "%Y"), "Spring - AMJ" = mean.spring)
     
     df.stacked <- merge(merge(tmp.fall, tmp.winter, by = "Year", all.x = TRUE, all.y = TRUE), 
                         tmp.spring, by = "Year", all.x = TRUE, all.y = TRUE)
@@ -448,25 +465,26 @@ for (x in 1:length(list_stn)) {
     svdir <- paste(Mdir, "output/stacked_season_snowdepth/plots/beside/", sep = "")
     setwd(svdir)
     pdf(paste(stn_title, '_stacked_season_beside.pdf', sep = ''))
-    png(paste(stn_title, '_stacked_season_beside.png', sep = ''), width=2000, height=784, units="px")
+    png(paste(stn_title, '_stacked_season_beside.png', sep = ''), width=2400, height=800, units="px")
     
     mx <- t(as.matrix(df.stacked))
     bp <- barplot.default(mx, beside = TRUE,
                           ylim = ylim, yaxt = 'n', 
-                    legend	= names(df.stacked),
-                    args.legend = list('topright', bty = 'o', cex = 2), #x = ncol(mx), y = max(colSums(mx), na.rm = TRUE), bty = "n"),
-                    cex.names = 1.1)
+                          legend	= names(df.stacked),
+                          args.legend = list('topright', bty = 'o', cex = 2), #x = ncol(mx), y = max(colSums(mx), na.rm = TRUE), bty = "n"),
+                          cex.names = 1.5,
+                          mar = c(5, 7, 4, 2) + 0.1)
     # bp <- barplot.default(mx, col = c('red', 'blue', 'springgreen2'), width = 0.1,
     #               beside = TRUE,
     #         border="black", space=0.8, ylim = ylim, yaxt = 'n', 
-            # legend	= names(df.stacked),
-            # args.legend = list('topright', bty = 'o', cex = 2), #x = ncol(mx), y = max(colSums(mx), na.rm = TRUE), bty = "n"),
-            # cex.names = 1.1)
+    # legend	= names(df.stacked),
+    # args.legend = list('topright', bty = 'o', cex = 2), #x = ncol(mx), y = max(colSums(mx), na.rm = TRUE), bty = "n"),
+    # cex.names = 1.1)
     title(main = paste(stn_title, sep = " "))
-    axis(2, at = ytck, las = 2)
-    mtext("Snow depth (cm)", side = 2, cex.lab = 2, line = 3)
+    axis(2, at = ytck, las = 2, line = -3.5, cex.axis = 2)
+    mtext("Seasonally-averaged snow depth (cm)", side = 2, cex = 2.5, line = 1.5)
     axis(1, at = bp[seq(2,length(bp), by = 3)], labels = rep('', length(rownames(df.stacked))))
-    mtext("Year", side = 1, cex.lab =1.5, line = 3)
+    mtext("Year", side = 1, cex = 2, line = 4)
     
     #colors()
     dev.off()
