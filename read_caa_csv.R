@@ -23,7 +23,7 @@ wdir <- paste(Mdir, "data/station/csv/", sep = "")
 setwd(wdir)
 
 #### Reading data
-idname <- read.csv(file = "_ID_NAME.csv", header = TRUE, sep = ",") 
+idname <- read.csv(file = "ID_NAME.csv", header = TRUE, sep = ",") 
 ## Lat lon info are stored in idname!
 
 
