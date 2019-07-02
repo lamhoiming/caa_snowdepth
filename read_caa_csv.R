@@ -87,9 +87,9 @@ A_J <- c("A","S", "O", "N", "D", "J", "F", "M", "A", "M", "J", "J")
 #############################################
 do.entirets <- FALSE #TRUE #          #######
 do.monthts <- FALSE #TRUE   #FALSE #  #######
-do.monthseries <-  FALSE #TRUE #      #######
-do.monthtrend <-   FALSE #    TRUE #  #######
-do.stackedbar <- TRUE # FALSE #FALSE         #######
+do.monthseries <-       FALSE #  #######
+do.monthtrend <-   FALSE #TRUE #    FALSE #  #######
+do.stackedbar <-  TRUE # FALSE         #######
 #############################################
 #############################################
 
@@ -182,7 +182,9 @@ for (x in 1:length(list_stn)) {
     capture.output(stats.snw, file = paste(stn_title, '_seasonal_cycle_stats.txt', sep =''))
     
     # Plot monthly averages seasonal trend
-    svdir <- paste(Mdir, "output/seasonal_cycle/plots/", sep = "")
+    svdir <- paste(Mdir, "output/seasonal_cycle/plots/w99bg/", sep = "")
+    #svdir <- paste(Mdir, "output/seasonal_cycle/plots/", sep = "")
+    
     setwd(svdir)
     
     lgd.snw <- c(paste("Slope =", round(slp_sep_may, digit = 2), "±",
@@ -194,20 +196,25 @@ for (x in 1:length(list_stn)) {
                  )
     
     pdf(paste(stn_title, 'seasonal_cycle.pdf', sep = ''))
-    png(paste(stn_title, 'seasonal_cycle.png', sep = ''), width=1600, height=1600, units="px")
+    png(paste(stn_title, 'seasonal_cycle.png', sep = ''), width=1600, height=1600, units="px", bg = FALSE)
+ 
+    
+    par(mar = c(12, 15, 6, 2), lwd = 8)
     
     errbar(1:11, stn_mean_bymonth_aug[2:12], stn_mean_bymonth_aug[2:12] + stn_sd_bymonth_aug[2:12], stn_mean_bymonth_aug[2:12] - stn_sd_bymonth_aug[2:12],
            xaxt = "n",  xlab = "", ylab = "", ylim = c(0,60), type = "o",
-           cex.axis = 2, cex = 2, 
-           mar = c(5, 9, 4, 2) + 0.1)
-    # clip(1,9, -100,200)
-    # abline(lm.acc, col = "red")
-    legend("topleft", legend = lgd.snw, bty = "n", cex = 2.5)
-    axis(side = 1, labels = A_J[2:12], at = 1:11, cex.axis = 2, tck = 0.02)
-    mtext("Month", side = 1, cex = 2, line = 3.5)
-    mtext("Snow depth (cm)", side = 2, cex = 1.7, line = 2.85)
-    title(main = stn_title)
-    
+           cex.axis = 5, cex = 10, lwd = 6, cap = 0.05, las = 2)
+    #w99
+    points(1:11, w99[2:12], cex = 6, pch = 19, col = 'pink', type = "o", lwd = 6)
+    arrows(1:11, w99[2:12] - w99sd[2:12], 1:11, w99[2:12] + w99sd[2:12], length = 0.2, angle = 90, code = 3, lwd = 4, col = 'pink')
+    text(x = 2, y = 25, labels = "Warren 1999", bty = 'n', cex = 3, col = 'pink')
+    #
+    legend("topleft", legend = lgd.snw, bty = "n", cex = 6)
+    axis(side = 1, labels = A_J[2:12], at = 1:11, cex.axis = 5, line = 3, tick = FALSE)
+    mtext("Month", side = 1, cex = 5, line = 10)
+    mtext("Snow depth (cm)", side = 2, cex = 7, line = 9)
+    title(main = stn_title, cex.main = 6)
+    par(bg = FALSE)
     
     dev.off()
     dev.off()
@@ -276,31 +283,30 @@ for (x in 1:length(list_stn)) {
             tmp.stats.out <- data.frame("Trend" = slp_trd, "Std.err" = std.err_trd, 
                                         "R-sq" = r.sq_trd, row.names = rnames[mth])
             
-            
+            ###!!!!!!! Skipping monthly trend vs year plots
             # # Plotting trend for each month with slope and r-sq as legends
-            lgd.trd <- c(paste("Slope =", round(slp_trd, digit = 2), "±",
-                               round(std.err_trd, digits = 2), "cm/year"), paste("R-square =", round(r.sq_trd, digits = 3)))
-            
-            svdir <- paste(Mdir, "output/trd_ind_mth_all_yr_avg/plots/", sep = "")
-            setwd(svdir)
-            pdf(paste(stn_title, '_', rnames[mth], '_all_yr_avg.pdf', sep = ''))
-            png(paste(stn_title, '_', rnames[mth], '_all_yr_avg.png', sep = ''), 
-                width = 1600, height = 1134, units="px")
-            
-            
-            errbar(trd$yr, trd$mean, trd$mean + trd$sd, trd$mean - trd$sd, 
-                   ylim = c(0,100), las = 1, xlab = "", ylab = "",
-                   cex.axis = 1.8, cex = 2,
-                   mar = c(5, 9, 4, 2) + 0.1)  #type = "o"
-            
-            title(main = paste(stn_title, rnames[mth], sep = " "))
-            mtext("Year", side = 1, cex = 2, line = 3.5)
-            mtext("Snow depth (cm)", side = 2, cex = 1.7, line = 2.7)
-            legend("topright", legend = lgd.trd, bty = "n", cex = 2)
-            abline(lm.trd, col = "red")
-            
-            dev.off()
-            dev.off()
+            # lgd.trd <- c(paste("Slope =", round(slp_trd, digit = 2), "±",
+            #                    round(std.err_trd, digits = 2), "cm/year"), paste("R-square =", round(r.sq_trd, digits = 3)))
+            # 
+            # svdir <- paste(Mdir, "output/trd_ind_mth_all_yr_avg/plots/", sep = "")
+            # setwd(svdir)
+            # pdf(paste(stn_title, '_', rnames[mth], '_all_yr_avg.pdf', sep = ''))
+            # png(paste(stn_title, '_', rnames[mth], '_all_yr_avg.png', sep = ''), 
+            #     width = 1600, height = 1134, units="px")
+            # 
+            # par(mar = c(12, 15, 6, 2), lwd = 8)
+            # errbar(trd$yr, trd$mean, trd$mean + trd$sd, trd$mean - trd$sd, 
+            #        ylim = c(0,100), las = 1, xlab = "", ylab = "",
+            #        cex.axis = 5, cex = 10, lwd = 6, cap = 0.05, las = 2)  #type = "o"
+            # 
+            # title(main = paste(stn_title, rnames[mth], sep = " "), cex.main = 6)
+            # mtext("Year", side = 1, cex = 5, line = 10)
+            # mtext("Snow depth (cm)", side = 2, cex = 7, line = 9)
+            # legend("topright", legend = lgd.trd, bty = "n", cex = 6)
+            # abline(lm.trd, col = "red")
+            # 
+            # dev.off()
+            # dev.off()
             
           }
         } 
@@ -321,28 +327,37 @@ for (x in 1:length(list_stn)) {
     write.csv(stats.out, file = paste(stn_title, '_trd_vs_mth_stats.csv', sep = ''))
     
     # plot trend by month with SONDJFMAMJJ
-    svdir <- paste(Mdir, "output/trd_vs_mth/plots", sep = "")
+    svdir <- paste(Mdir, "output/trd_vs_mth/plots/w99bg/", sep = "")    
+    # svdir <- paste(Mdir, "output/trd_vs_mth/plots/", sep = "")
+
     setwd(svdir)
     pdf(paste(stn_title, '_trd_vs_mth.pdf', sep = ''))
     png(paste(stn_title, '_trd_vs_mth.png', sep = ''), 
-        width = 1600, height = 1600, units="px")
+        width = 1600, height = 1600, units="px", bg = FALSE)
     
+    par(mar = c(12, 15, 6, 2), lwd = 8)
     errbar(1:11, stats.out$Trend[2:12], 
            stats.out$Trend[2:12] + stats.out$Std.err[2:12], stats.out$Trend[2:12] - stats.out$Std.err[2:12],
-           ylim = c(-3,3), xaxt = "n",
-           xlab = '', ylab = '',
-           cex = 2,
-           las = 1, cex.axis = 2,
-           mar = c(5, 9, 4, 2) + 0.1)
-    
-    title(main = paste(stn_title, sep = " "))
-    axis(side = 1, labels = A_J[2:12], at = 1:11, cex.axis = 2, tck = 0.02)
-    mtext("Month", side = 1, cex = 2, line = 3.5)
-    mtext("Trend (cm/year)", side = 2, cex = 2, line = 2.5)
+           ylim = c(max(-3, -2.5*(0.1 + abs(min(stats.out$Trend, na.rm = TRUE)))), 
+                    2.5*(0.2 + max(stats.out$Trend, na.rm = TRUE))), 
+           xaxt = "n", xlab = '', ylab = '', pch = 4,
+           cex.axis = 5, cex = 6, lwd = 6, cap = 0.05, las = 2)
+    #w99
+    points(1:11, w99.trd[2:12], cex = 6, pch = 19, col = 'pink', type = "p", lwd = 6)
+    arrows(1:11, w99.trd[2:12] - w99.trd.err[2:12], 1:11, w99.trd[2:12] + w99.trd.err[2:12], length = 0.2, angle = 90, code = 3, lwd = 4, col = 'pink')
+    text(x = 10, y = 0.9*par("usr")[4], labels = "Warren 1999", bty = 'n', cex = 3, col = 'pink')
+    ##
+                        
+    title(main = paste(stn_title, sep = " "), cex.main = 6)
+    axis(side = 1, labels = A_J[2:12], at = 1:11,  cex.axis = 5, line = 3, tick = FALSE)
+    mtext("Month", side = 1, cex = 5, line = 10)
+    mtext("Trend (cm/year)", side = 2, cex = 7, line = 9)
     lgd.startend = c(paste("start :", index(stn_mean_byyearmonth)[1]), 
                      paste(" end :", index(stn_mean_byyearmonth)[length(index(stn_mean_byyearmonth))]))
-    legend("topright", legend = lgd.startend, bty = "n", cex = 2.5)
-    abline(0,0)
+    legend("topleft", legend = lgd.startend, bty = "n", cex = 6)
+    
+    abline(0,0, col = "black", lwd = 4)
+    par(bg = FALSE)
     
     dev.off()
     dev.off()
@@ -352,8 +367,10 @@ for (x in 1:length(list_stn)) {
   ################################################
   
   ##### Stacked barcharts
+  ############
   if (do.stackedbar == TRUE) {
     xts.stn_snow <- xts(stn[,3],stn.date)
+    xts.stn_snow <- window(xts.stn_snow, start = "1959-01-01")# exclude data before 1958 because of scarcity
     
   ##### functions
     endpoints.seasons <- function(x, on = "spring") {
@@ -435,10 +452,11 @@ for (x in 1:length(list_stn)) {
     index(mean.winter) <- as.yearmon(index(mean.winter))
     index(mean.spring) <- as.yearmon(index(mean.spring))
     
-    tmp.fall <- data.frame("Year" = format(index(mean.fall), "%Y"), "Fall - SOND" = mean.fall)
-    tmp.winter <- data.frame("Year" = format(index(mean.winter), "%Y"), "Winter - JFM" = mean.winter)
-    tmp.spring <- data.frame("Year" = format(index(mean.spring), "%Y"), "Spring - AMJ" = mean.spring)
-    
+    tmp.fall <- data.frame("Year" = format(index(mean.fall), "%Y"), "Fall" = mean.fall)
+    tmp.winter <- data.frame("Year" = format(index(mean.winter), "%Y"), "Winter" = mean.winter)
+    tmp.spring <- data.frame("Year" = format(index(mean.spring), "%Y"), "Spring" = mean.spring)
+
+    # 
     df.stacked <- merge(merge(tmp.fall, tmp.winter, by = "Year", all.x = TRUE, all.y = TRUE), 
                         tmp.spring, by = "Year", all.x = TRUE, all.y = TRUE)
     
@@ -453,51 +471,234 @@ for (x in 1:length(list_stn)) {
     df.stacked[is.na(df.stacked)] <- 0 
  
     
-    ytck <- seq(0, 1.5*max(t(as.matrix(df.stacked)), na.rm = TRUE), by = 5)
+    ytck <- seq(0, 1.5*max(t(as.matrix(df.stacked)), na.rm = TRUE), by = 20)
     ylim <- c(0, 1.5*max(t(as.matrix(df.stacked)), na.rm = TRUE))
     # ytck <- seq(0, 2.25*max(t(as.matrix(df.stacked)), na.rm = TRUE), by = 50)
     # ylim <- c(0, 2.25*max(t(as.matrix(df.stacked)), na.rm = TRUE))
     # 
-    # svdir <- paste(Mdir, "output/stacked_season_snowdepth/plots/", sep = "")
+    # svdir <- paste(Mdir, "output/stacked_season_snowdepth/plots/stacked/", sep = "")
     # setwd(svdir)
     # pdf(paste(stn_title, '_stacked_season.pdf', sep = ''))
     # png(paste(stn_title, '_stacked_season.png', sep = ''), width=1400, height=784, units="px")
-    svdir <- paste(Mdir, "output/stacked_season_snowdepth/plots/beside/", sep = "")
+    svdir <- paste(Mdir, "output/stacked_season_snowdepth/plots/beside/nobg/", sep = "")
+    # svdir <- paste(Mdir, "output/stacked_season_snowdepth/plots/beside/", sep = "")
+    
     setwd(svdir)
     pdf(paste(stn_title, '_stacked_season_beside.pdf', sep = ''))
-    png(paste(stn_title, '_stacked_season_beside.png', sep = ''), width=2400, height=800, units="px")
+    png(paste(stn_title, '_stacked_season_beside.png', sep = ''), 
+        width=3200, height=1600, units="px", bg = FALSE)
     
     mx <- t(as.matrix(df.stacked))
-    bp <- barplot.default(mx, beside = TRUE,
+    par(mar = c(10, 12, 8, 2), lwd = 4)
+    
+    bp <- barplot.default(mx, col = rbind('red', 'cyan', 'black'), beside = TRUE,
+                          
                           ylim = ylim, yaxt = 'n', 
+                          border = NA, 
+                          density = c(18, 25, 18) , angle=c(11, 35, 80),
                           legend	= names(df.stacked),
-                          args.legend = list('topright', bty = 'o', cex = 2), #x = ncol(mx), y = max(colSums(mx), na.rm = TRUE), bty = "n"),
-                          cex.names = 1.5,
-                          mar = c(5, 7, 4, 2) + 0.1)
+                          args.legend = list('topright', bty = 'o', cex = 4), #x = ncol(mx), y = max(colSums(mx), na.rm = TRUE), bty = "n"),
+                          cex.names = 4,
+                          cex.axis = 5, cex = 6, las = 1)
+    
+                          
     # bp <- barplot.default(mx, col = c('red', 'blue', 'springgreen2'), width = 0.1,
     #               beside = TRUE,
     #         border="black", space=0.8, ylim = ylim, yaxt = 'n', 
     # legend	= names(df.stacked),
     # args.legend = list('topright', bty = 'o', cex = 2), #x = ncol(mx), y = max(colSums(mx), na.rm = TRUE), bty = "n"),
     # cex.names = 1.1)
-    title(main = paste(stn_title, sep = " "))
-    axis(2, at = ytck, las = 2, line = -3.5, cex.axis = 2)
-    mtext("Seasonally-averaged snow depth (cm)", side = 2, cex = 2.5, line = 1.5)
-    axis(1, at = bp[seq(2,length(bp), by = 3)], labels = rep('', length(rownames(df.stacked))))
-    mtext("Year", side = 1, cex = 2, line = 4)
-    
+    title(main = paste(stn_title, sep = " "), cex.main = 6)
+    axis(2, at = ytck, line = -3.5, las = 2, cex.axis = 6, lwd = 4)
+    mtext("Snow depth (cm)", side = 2, cex = 7, line = 7)
+    #axis(1, at = seq(2,length(bp), by = 18), lwd = 4, labels = row.names(df.stacked)[seq(1,length(row.names(df.stacked)), by = 5)], cex.lab = 8)
+    axis(1, at = bp[seq(2,length(bp), by = 3)], lwd = 4, labels = rep('', length(rownames(df.stacked))), cex = 5)
+    #mtext("Year", side = 1, cex = 5, line = 9)
+    par(bg = FALSE)
+
     #colors()
     dev.off()
     dev.off()
   }
-  
 }
 
+###### plot warren from CPOM values
+############# 
+setwd(paste(Mdir, "data/warren/", sep = ""))
+
+png('w99.png', width=1600, height=1600, units="px", bg = FALSE)
+w99 <- 100*c(0.0251, 0.0841, 0.1716, 0.2136, 0.2332, 0.2668, 0.2888, 0.316, 0.3132, 0.3259, 0.2771, 0.0338)
+w99sd <- c(2.979750521,
+           6.433229186,
+           6.882671343,
+           6.603846596,
+           6.253049126,
+           4.577360915,
+           2.704163486,
+           3.468210087,
+           4.682400002,
+           5.32333104,
+           8.368955965,
+           7.652488797
+)
+par(mar = c(12, 15, 6, 2), lwd = 8)
+errbar(1:12, w99, w99 + w99sd, w99 - w99sd,
+       xaxt = "n",  xlab = "", ylab = "", ylim = c(0,40), type = "o",
+       cex.axis = 5, cex = 10, lwd = 6, cap = 0.05, las = 2)
+
+
+axis(side = 1, labels = A_J[1:12], at = 1:12, cex.axis = 5, line = 3, tick = FALSE)
+mtext("Month", side = 1, cex = 5, line = 10)
+mtext("Snow depth (cm)", side = 2, cex = 7, line = 9)
+title(main = 'Warren climatology', cex.main = 6)
+par(bg = FALSE)
+
+
+dev.off()
+
+
+w99.trd <- -c(0.01, 0.03, 0.08, 0.05, 0.06, 0.06, 0.06, 0.04, 0.09, 0.21, 0.16, -0.02)
+w99.trd.err <-  c(0.05, 0.06, 0.06, 0.07, 0.07, 0.07, 0.08, 0.10, 0.09, 0.09, 0.12, 0.1002)
+png('w99_trd_vs_mth.png', width = 1600, height = 1600, units="px", bg = FALSE)
+
+par(mar = c(12, 15, 6, 2), lwd = 8, bg = FALSE)
+errbar(1:12, w99.trd, w99.trd + w99.trd.err, w99.trd - w99.trd.err,
+       ylim = c(1.3*min(w99.trd - w99.trd.err, na.rm = TRUE), 
+                1.3*max(w99.trd + w99.trd.err, na.rm = TRUE)), 
+       
+       xaxt = "n", xlab = '', ylab = '', pch = 4,
+       cex.axis = 5, cex = 6, lwd = 6, cap = 0.05, las = 2
+       )
+
+#title(main = paste(stn_title, sep = " "), cex.main = 6)
+axis(side = 1, labels = A_J, at = 1:12,  cex.axis = 5, line = 3, tick = FALSE)
+mtext("Month", side = 1, cex = 5, line = 10)
+mtext("Trend (cm/year)", side = 2, cex = 7, line = 9)
+title(main = 'Warren climatology', cex.main = 6)
+
+#lgd.startend = c(paste("start :", index(stn_mean_byyearmonth)[1]), 
+# paste(" end :", index(stn_mean_byyearmonth)[length(index(stn_mean_byyearmonth))]))
+#legend("topleft", legend = lgd.startend, bty = "n", cex = 6)
+abline(0,0, col = "black", lwd = 4)
+par(bg = FALSE)
+
+dev.off()
+#####################
+
+###### CAA mean interannual trd and snow depth annual cycle
+####### mean seasonal
+###########
+wdir <- paste(Mdir, "output/seasonal_cycle/tables/", sep = "")
+setwd(wdir)
+files = list.files(pattern="*cycle.csv")
+# First apply read.csv, then rbind
+myfiles = do.call(cbind, lapply(files, function(x) read.csv(x, stringsAsFactors = TRUE)))
+
+
+myfiles <- myfiles[,-c(5,6,9,10,13,14,17,18,21,22,25,26,29,30,33,34,37,38,41,42)]
+myfiles <- myfiles[,-(c(5,6,9,10,13,14,17,18,21,22,25,26,29,30,33,34,37,38,41,42)+20)]
+myfiles <- myfiles[,-(c(5,6,9,10,13,14,17,18,21,22,25,26,29,30,33,34,37,38,41,42)+40)]
+myfiles <- myfiles[,-(c(5,6,9,10,13,14,17,18,21,22,25,26,29,30,33,34,37,38,41,42)+60)]
+
+mth <- as.matrix(myfiles[,2])
+all_stn <- as.matrix(myfiles[,seq(3,69, by = 2)])#, rownames = mth)
+mean_all_stn <- data.frame(Means=rowMeans(all_stn, na.rm = TRUE))
+library(matrixStats)
+sd_all_stn <- rowSds(all_stn, na.rm = TRUE) %>% as.data.frame()
+all_stn_mean_sd <- data.frame(Month = mth, mean_all_stn,  sd_all_stn)
+
+write.csv(all_stn_mean_sd, file = 'CAA_seasonal_cycle_avg.csv', na = "NA")
+
+
+# Plot monthly averages seasonal trend
+svdir <- paste(Mdir, "output/seasonal_cycle/plots/", sep = "")
+setwd(svdir)
+
+# lgd.snw <- c(paste("Slope =", round(slp_sep_may, digit = 2), "±",
+#                    round(std.err_sep_may, digits = 2), "cm/month"), 
+#              paste("R-square =", round(r.sq, digits = 3)),
+#              ' ',
+#              paste("start :", as.yearmon(stn.date)[1]),
+#              paste(" end :", as.yearmon(stn.date)[length(stn.date)])
+# )
+
+#pdf('All_stn_seasonal_cycle.pdf')
+png('CAA_seasonal_cycle.png', width=1600, height=1600, units="px", bg = FALSE)
+
+par(mar = c(12, 15, 6, 2), lwd = 8)
+errbar(1:12, mean_all_stn[,1], mean_all_stn[,1] + sd_all_stn[,1], mean_all_stn[,1] - sd_all_stn[,1],
+       xaxt = "n",  xlab = "", ylab = "", ylim = c(0,40), type = "o",
+       cex.axis = 5, cex = 10, lwd = 6, cap = 0.05, las = 2)
+
+
+#legend("topleft", legend = lgd.snw, bty = "n", cex = 6)
+axis(side = 1, labels = A_J, at = 1:12, cex.axis = 5, line = 3, tick = FALSE)
+mtext("Month", side = 1, cex = 5, line = 10)
+mtext("Snow depth (cm)", side = 2, cex = 7, line = 9)
+title(main = 'CAA average', cex.main = 6)
+par(bg = FALSE)
+
+
+dev.off()
+dev.off()
+#########
+
+
+
+##### plot avg trd vs mth
+###########
+wdir <- paste(Mdir, "output/trd_vs_mth/tables/stats/", sep = "")
+setwd(wdir)
+files = list.files(pattern="*mth_stats.csv")
+# First apply read.csv, then rbind
+myfiles <- data.frame()
+myfiles = do.call(cbind, lapply(files, function(x) read.csv(x, stringsAsFactors = FALSE, col.names = c('Month', 'Trend',	'Std.err',	'R.sq'))))
+
+
+myfiles <- myfiles[,seq(2,126, by = 4)]
+
+
+all_stn <- as.matrix(myfiles)#, rownames = mth)
+mean_all_stn <- data.frame(Means=rowMeans(all_stn, na.rm = TRUE))
+library(matrixStats)
+sd_all_stn <- rowSds(all_stn, na.rm = TRUE) %>% as.data.frame()
+all_stn_mean_sd <- data.frame(Month = mth, mean_all_stn,  sd_all_stn)
+
+write.csv(all_stn_mean_sd, file = 'CAA_trd_vs_mth_avg.csv', na = "NA")
+
+
+# Plot monthly averages seasonal trend
+svdir <- paste(Mdir, "output/trd_vs_mth/plots/", sep = "")
+setwd(svdir)
+
+
+png('CAA_trd_vs_mth.png', width=1600, height=1600, units="px", bg = FALSE)
+# postscript('CAA_trd_vs_mth.ps', width=6, height=6)
+par(mar = c(12, 15, 6, 2), lwd = 8)
+errbar(1:12, mean_all_stn[,1], mean_all_stn[,1] + sd_all_stn[,1], mean_all_stn[,1] - sd_all_stn[,1],
+       xaxt = "n",  xlab = "", ylab = "", ylim = c(-1, 1),
+       cex.axis = 5, cex = 10, lwd = 8, cap = 0.05, las = 2
+       , bg = FALSE)
+
+
+#legend("topleft", legend = lgd.snw, bty = "n", cex = 6)
+axis(side = 1, labels = A_J, at = 1:12, cex.axis = 5, line = 3, tick = FALSE)
+mtext("Month", side = 1, cex = 5, line = 10)
+mtext("Trend (cm/year)", side = 2, cex = 7, line = 9)
+title(main = 'CAA average', cex.main = 6)
+abline(0,0, col = 'black', lwd = 4)
+par(bg = FALSE)
+# dev.copy2pdf(device = dev.prev(), out.type = 'pdf', width=49, height=49)
+
+dev.off()
+ ###########
 
 
 
 
 # end
+
+
 ########################
 # # # ### discard
 # # # 
