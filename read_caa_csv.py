@@ -39,15 +39,16 @@ def read_snowdepth(data):
 def average_snowdepth_by_month(data):
     for i, station in enumerate(list_station):
         station_monthly_mean[station] = data[station]['snow_depth'].resample('M').mean()
+        station_monthly_std[station] = data[station]['snow_depth'].resample('M').std()
         station_monthly_mean[station].index = pd.to_datetime(station_monthly_mean[station].index, format="%Y%m")
-
+        
     return station_monthly_mean
 
-# Plot monthly time series
-def month_time_series(data,save_directory):
-    station_monthly_mean = pd.
-        for i, station in enumerate(list_stn):
-            plt.plot()
+## Plot monthly time series
+#def month_time_series(data,save_directory):
+#    station_monthly_mean = pd.
+#        for i, station in enumerate(list_stn):
+#            plt.plot()
 
     
 #################
@@ -153,6 +154,7 @@ read_snowdepth(eccc_data)
 
 
 station_monthly_mean = {}
+station_monthly_std = {}
 average_snowdepth_by_month(station_snowdepth)
 
 
