@@ -46,13 +46,13 @@ def average_snowdepth_by_month(data):
 
 ## Plot monthly time series
 def plot_month_time_series(data,save_directory):
+    os.chdir(save_directory)
     for i, station in enumerate(list_station):
         print(i)
         plt.figure(i)
         data[station].plot(style='-')
         plt.xlabel('Year')
         plt.ylabel('Snow depth (cm)')
-        os.chdir(save_directory)
         plt.savefig(station_title[station]+'_month_time_series.pdf', dpi = 300, transparent = True)
     
 #################
