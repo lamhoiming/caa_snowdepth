@@ -19,37 +19,41 @@ def read_station():
         print(station)
         eccc_data[station] = pd.read_csv(ID[0] + '.csv', parse_dates = [0], infer_datetime_format=True, index_col = 'Date')
 
+# station titles without space
+def print_station_title():
+    station_title = {station:station.replace(' ', '_') for i, station in enumerate(list_station)}
+    return station_title
+
 # READING SNOW DEPTH FROM EACH STATION
 def read_snowdepth(data):
     for i, station in enumerate(list_station):
-        station_title = station.replace(' ', '_')
-        print(station_title)
         station_snowdepth[station] = pd.DataFrame({'snow_depth':data[station]['Snowdepth'], 'ice_thickness':data[station]['Icethickness']})
-
 #        station_snowdepth[station] = pd.DataFrame({'date':data[station]['Date'], 'snow_depth':data[station]['Snowdepth'], 'ice_thickness':data[station]['Icethickness']})
 #   ***If not already datetime object, add this line:
 #        station_snowdepth[station].index = station_snowdepth[station].index.strftime('%Y/%m/%d')
         station_snowdepth[station].index = pd.to_datetime(station_snowdepth[station].index, format="%Y%m%d")
-
 #        station_snowdepth[station].set_index(station_snowdepth[station]['date'], inplace=True)
-        
     return station_snowdepth
 
 # Calculate month average
 def average_snowdepth_by_month(data):
     for i, station in enumerate(list_station):
-        station_monthly_mean[station] = data[station]['snow_depth'].resample('M').mean()
-        station_monthly_std[station] = data[station]['snow_depth'].resample('M').std()
-        station_monthly_mean[station].index = pd.to_datetime(station_monthly_mean[station].index, format="%Y%m")
+        station_snowdepth_monthly_mean[station] = data[station]['snow_depth'].resample('M').mean()
+        station_snowdepth_monthly_std[station] = data[station]['snow_depth'].resample('M').std()
+        station_snowdepth_monthly_mean[station].index = pd.to_datetime(station_snowdepth_monthly_mean[station].index, format="%Y%m")
         
-    return station_monthly_mean
+    return station_snowdepth_monthly_mean
 
 ## Plot monthly time series
-#def month_time_series(data,save_directory):
-#    station_monthly_mean = pd.
-#        for i, station in enumerate(list_stn):
-#            plt.plot()
-
+def plot_month_time_series(data,save_directory):
+    for i, station in enumerate(list_station):
+        print(i)
+        plt.figure(i)
+        data[station].plot(style='-')
+        plt.xlabel('Year')
+        plt.ylabel('Snow depth (cm)')
+        os.chdir(save_directory)
+        plt.savefig(station_title[station]+'_month_time_series.pdf', dpi = 300, transparent = True)
     
 #################
 
@@ -109,12 +113,11 @@ list_station = [
   "INUVIK YEV"
   # Further southeast around Labrador sea/PEI?
 ]
-print(list_station)
 
 
 # In[ ]:
 
-
+station_title = print_station_title()
 
 
 # In[ ]:
@@ -153,12 +156,12 @@ station_snowdepth = {}
 read_snowdepth(eccc_data)
 
 
-station_monthly_mean = {}
-station_monthly_std = {}
+station_snowdepth_monthly_mean = {}
+station_snowdepth_monthly_std = {}
 average_snowdepth_by_month(station_snowdepth)
 
 
-
+plot_month_time_series(station_snowdepth_monthly_mean, Mdir+"output/ts_mth_avg/plots/")
 ## After reading the snow depth vs date, now manipulate in different ways
 #Function to plot monthly time series for all stations
 
