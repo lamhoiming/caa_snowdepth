@@ -54,7 +54,7 @@ def plot_month_time_series(data,save_directory):
         plt.xlabel('Year')
         plt.ylabel('Snow depth (cm)')
         plt.savefig(station_title[station]+'_month_time_series.pdf', dpi = 300, transparent = True)
-    
+        plt.close(i)
 #################
 
 ############ data input #################
