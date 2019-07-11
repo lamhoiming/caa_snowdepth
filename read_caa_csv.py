@@ -1,9 +1,5 @@
 #!/usr/bin/env python
 # coding: utf-8
-
-# In[ ]:
-
-
 """
 Translating read_caa_csv.R into Python
 Lam Hoi Ming
@@ -16,9 +12,45 @@ import re
 import pandas as pd
 import matplotlib.pyplot as plt
 
+def read_station():
+    for i, station in enumerate(list_station):
+#         if idname.StationName.str.match(station).bool:
+        ID = idname.index[idname.StationName == station].format()
+        print(station)
+        eccc_data[station] = pd.read_csv(ID[0] + '.csv', parse_dates = [0], infer_datetime_format=True, index_col = 'Date')
 
-# In[ ]:
+# READING SNOW DEPTH FROM EACH STATION
+def read_snowdepth(data):
+    for i, station in enumerate(list_station):
+        station_title = station.replace(' ', '_')
+        print(station_title)
+        station_snowdepth[station] = pd.DataFrame({'snow_depth':data[station]['Snowdepth'], 'ice_thickness':data[station]['Icethickness']})
 
+#        station_snowdepth[station] = pd.DataFrame({'date':data[station]['Date'], 'snow_depth':data[station]['Snowdepth'], 'ice_thickness':data[station]['Icethickness']})
+#   ***If not already datetime object, add this line:
+#        station_snowdepth[station].index = station_snowdepth[station].index.strftime('%Y/%m/%d')
+        station_snowdepth[station].index = pd.to_datetime(station_snowdepth[station].index, format="%Y%m%d")
+
+#        station_snowdepth[station].set_index(station_snowdepth[station]['date'], inplace=True)
+        
+    return station_snowdepth
+
+# Calculate month average
+def average_snowdepth_by_month(data):
+    for i, station in enumerate(list_station):
+        station_monthly_mean[station] = data[station]['snow_depth'].resample('M').mean()
+        station_monthly_mean[station].index = pd.to_datetime(station_monthly_mean[station].index, format="%Y%m")
+
+    return station_monthly_mean
+
+# Plot monthly time series
+def month_time_series(data,save_directory):
+    station_monthly_mean = pd.
+        for i, station in enumerate(list_stn):
+            plt.plot()
+
+    
+#################
 
 ############ data input #################
 #### set data input working directory: Where are your data?
@@ -27,16 +59,10 @@ wdir = Mdir + "data/station/csv/" # specific working dir
 os.chdir(wdir)
 
 
-# In[ ]:
-
-
 # Getting station ID
 # Lat lon info are stored in idname
 idname = pd.read_csv('ID_NAME.csv', encoding = "utf-8", sep = ',', index_col = 'StationID') # ISO-8859-1 for ASCII
 idname.head()
-
-
-# In[ ]:
 
 
 # List of stations
@@ -88,14 +114,6 @@ print(list_station)
 # In[ ]:
 
 
-def read_station():
-    for i, station in enumerate(list_station):
-#         if idname.StationName.str.match(station).bool:
-        ID = idname.index[idname.StationName == station].format()
-        print(station)
-        eccc_data[station] = pd.read_csv(ID[0] + '.csv', parse_dates = [0], infer_datetime_format=True, index_col = 'Date')
-#         else:
-#             print('nothing')
 
 
 # In[ ]:
@@ -125,42 +143,31 @@ A_J = ["A","S", "O", "N", "D", "J", "F", "M", "A", "M", "J", "J"]
 
 
 # READING SNOW DEPTH FROM EACH STATION
-def read_snowdepth(data):
-    for i, station in enumerate(list_station):
-        station_title = station.replace(' ', '_')
-        print(station_title)
-        station_snowdepth[station] = pd.DataFrame({'snow_depth':data[station]['Snowdepth']})
-    return station_snowdepth
+
 
 
 # In[ ]:
 
-
+station_snowdepth = {}
 read_snowdepth(eccc_data)
 
 
-# In[ ]:
+station_monthly_mean = {}
+average_snowdepth_by_month(station_snowdepth)
 
-
-station_snowdepth.head()
-
-
-# In[ ]:
 
 
 ## After reading the snow depth vs date, now manipulate in different ways
 #Function to plot monthly time series for all stations
-def month_time_series(data,save_directory):
-    station_monthly_mean = pd.
-        for i, station in enumerate(list_stn):
-            plt.plot()
 
 
-# In[ ]:
+#
 
-
-svdir = Mdir + 'output/ts_mth_avg/plots/'
-month_time_series(,svdir)
+## In[ ]:
+#
+#
+#svdir = Mdir + 'output/ts_mth_avg/plots/'
+#month_time_series(,svdir)
 
 
 # In[ ]:
