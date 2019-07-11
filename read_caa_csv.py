@@ -17,8 +17,20 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-# In[ ]:
+def read_station():
+    for i, station in enumerate(list_stn):
+#         if idname.StationName.str.match(station).bool:
+        ID = idname.index[idname.StationName == station].format()
+        print(station)
+        fdata[station] = pd.read_csv(ID[0] + '.csv', parse_dates = [0], infer_datetime_format=True, index_col = 'Date')
 
+
+# READING SNOW DEPTH FROM EACH STATION
+def read_snowdepth(data):
+    for i, station in enumerate(list_stn):
+        stn_title = station.replace(' ', '_')
+        print(stn_title)
+        stn_snow[station] = pd.DataFrame({'snow_depth':data[station]['Snowdepth']})
 
 ############ data input #################
 #### set data input working directory: Where are your data?
@@ -27,16 +39,12 @@ wdir = Mdir + "data/station/csv/" # specific working dir
 os.chdir(wdir)
 
 
-# In[ ]:
-
 
 # Getting station ID
 # Lat lon info are stored in idname
 idname = pd.read_csv('ID_NAME.csv', encoding = "utf-8", sep = ',', index_col = 'StationID') # ISO-8859-1 for ASCII
 idname.head()
 
-
-# In[ ]:
 
 
 # List of stations
@@ -84,23 +92,7 @@ list_stn = [
 ]
 print(list_stn)
 
-
-# In[ ]:
-
-
-def read_station():
-    for i, station in enumerate(list_stn):
-#         if idname.StationName.str.match(station).bool:
-        ID = idname.index[idname.StationName == station].format()
-        print(station)
-        fdata[station] = pd.read_csv(ID[0] + '.csv', parse_dates = [0], infer_datetime_format=True, index_col = 'Date')
-#         else:
-#             print('nothing')
-
-
-# In[ ]:
-
-
+#read all stations
 fdata = {}
 read_station()
 # fdata['ALERT YLT']
@@ -115,40 +107,17 @@ aug_jul = ["Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May",
 A_J = ["A","S", "O", "N", "D", "J", "F", "M", "A", "M", "J", "J"]
 
 
-# In[ ]:
-
-
-# READING SNOW DEPTH FROM EACH STATION
-def read_snowdepth(data):
-    for i, station in enumerate(list_stn):
-        stn_title = station.replace(' ', '_')
-        print(stn_title)
-        stn_snow[station] = pd.DataFrame({'snow_depth':data[station]['Snowdepth']})
-
-
-# In[ ]:
-
-
+#read snowdepth from each station
 stn_snow = {}
 read_snowdepth(fdata)
 
 
-# In[ ]:
-
 
 ## After reading the snow depth vs date, now manipulate in different ways
 #Function to plot time series for all stations
-def full_time_series(stn_data,save_directory):
+#def month_time_series(stn_data,save_directory):
     
 
-
-# In[ ]:
-
-
-help()
-
-
-# In[ ]:
 
 
 
