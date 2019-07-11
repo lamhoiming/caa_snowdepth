@@ -17,20 +17,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-def read_station():
-    for i, station in enumerate(list_stn):
-#         if idname.StationName.str.match(station).bool:
-        ID = idname.index[idname.StationName == station].format()
-        print(station)
-        fdata[station] = pd.read_csv(ID[0] + '.csv', parse_dates = [0], infer_datetime_format=True, index_col = 'Date')
+# In[ ]:
 
-
-# READING SNOW DEPTH FROM EACH STATION
-def read_snowdepth(data):
-    for i, station in enumerate(list_stn):
-        stn_title = station.replace(' ', '_')
-        print(stn_title)
-        stn_snow[station] = pd.DataFrame({'snow_depth':data[station]['Snowdepth']})
 
 ############ data input #################
 #### set data input working directory: Where are your data?
@@ -39,6 +27,8 @@ wdir = Mdir + "data/station/csv/" # specific working dir
 os.chdir(wdir)
 
 
+# In[ ]:
+
 
 # Getting station ID
 # Lat lon info are stored in idname
@@ -46,9 +36,11 @@ idname = pd.read_csv('ID_NAME.csv', encoding = "utf-8", sep = ',', index_col = '
 idname.head()
 
 
+# In[ ]:
+
 
 # List of stations
-list_stn = [
+list_station = [
   # West of 100W, no 2016
   "CAPE PARRY ZUE", 
   "COPPERMINE YCO",
@@ -90,12 +82,34 @@ list_stn = [
   "INUVIK YEV"
   # Further southeast around Labrador sea/PEI?
 ]
-print(list_stn)
+print(list_station)
 
-#read all stations
-fdata = {}
+
+# In[ ]:
+
+
+def read_station():
+    for i, station in enumerate(list_station):
+#         if idname.StationName.str.match(station).bool:
+        ID = idname.index[idname.StationName == station].format()
+        print(station)
+        eccc_data[station] = pd.read_csv(ID[0] + '.csv', parse_dates = [0], infer_datetime_format=True, index_col = 'Date')
+#         else:
+#             print('nothing')
+
+
+# In[ ]:
+
+
+eccc_data = {}
 read_station()
-# fdata['ALERT YLT']
+
+
+# In[ ]:
+
+
+dir(eccc_data)
+eccc_data.keys()
 
 
 # In[ ]:
@@ -107,17 +121,49 @@ aug_jul = ["Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May",
 A_J = ["A","S", "O", "N", "D", "J", "F", "M", "A", "M", "J", "J"]
 
 
-#read snowdepth from each station
-stn_snow = {}
-read_snowdepth(fdata)
+# In[ ]:
 
+
+# READING SNOW DEPTH FROM EACH STATION
+def read_snowdepth(data):
+    for i, station in enumerate(list_station):
+        station_title = station.replace(' ', '_')
+        print(station_title)
+        station_snowdepth[station] = pd.DataFrame({'snow_depth':data[station]['Snowdepth']})
+    return station_snowdepth
+
+
+# In[ ]:
+
+
+read_snowdepth(eccc_data)
+
+
+# In[ ]:
+
+
+station_snowdepth.head()
+
+
+# In[ ]:
 
 
 ## After reading the snow depth vs date, now manipulate in different ways
-#Function to plot time series for all stations
-#def month_time_series(stn_data,save_directory):
-    
+#Function to plot monthly time series for all stations
+def month_time_series(data,save_directory):
+    station_monthly_mean = pd.
+        for i, station in enumerate(list_stn):
+            plt.plot()
 
+
+# In[ ]:
+
+
+svdir = Mdir + 'output/ts_mth_avg/plots/'
+month_time_series(,svdir)
+
+
+# In[ ]:
 
 
 
