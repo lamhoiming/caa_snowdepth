@@ -8,9 +8,8 @@ Lam Hoi Ming
 Data processing is done on the original csv file. Separated into files by station
 """
 import os
-import re
 import pandas as pd
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 def read_station():
     for i, station in enumerate(list_station):
@@ -45,17 +44,17 @@ def average_snowdepth_by_month(data):
     return station_snowdepth_monthly_mean
 
 ## Plot monthly time series
-def plot_month_time_series(data,save_directory):
-    os.chdir(save_directory)
-    for i, station in enumerate(list_station):
-        print(i)
-        plt.figure(i)
-        data[station].plot(style='-')
-        plt.xlabel('Year')
-        plt.ylabel('Snow depth (cm)')
-        plt.savefig(station_title[station]+'_month_time_series.pdf', dpi = 300, transparent = True)
-        plt.close(i)
-#################
+#def plot_month_time_series(data,save_directory):
+#    os.chdir(save_directory)
+#    for i, station in enumerate(list_station):
+#        print(i)
+#        plt.figure(i)
+#        data[station].plot(style='-')
+#        plt.xlabel('Year')
+#        plt.ylabel('Snow depth (cm)')
+#        plt.savefig(station_title[station]+'_month_time_series.pdf', dpi = 300, transparent = True)
+#        plt.close(i)
+##################
 
 ############ data input #################
 #### set data input working directory: Where are your data?
@@ -67,8 +66,6 @@ os.chdir(wdir)
 # Getting station ID
 # Lat lon info are stored in idname
 idname = pd.read_csv('ID_NAME.csv', encoding = "utf-8", sep = ',', index_col = 'StationID') # ISO-8859-1 for ASCII
-idname.head()
-
 
 # List of stations
 list_station = [
@@ -119,6 +116,7 @@ list_station = [
 
 station_title = print_station_title()
 
+station_location = pd.DataFrame({'latitude':idname.latitude, 'longitude':idname.longitude})
 
 # In[ ]:
 
@@ -161,7 +159,7 @@ station_snowdepth_monthly_std = {}
 average_snowdepth_by_month(station_snowdepth)
 
 
-plot_month_time_series(station_snowdepth_monthly_mean, Mdir+"output/ts_mth_avg/plots/")
+#plot_month_time_series(station_snowdepth_monthly_mean, Mdir+"output/ts_mth_avg/plots/")
 ## After reading the snow depth vs date, now manipulate in different ways
 #Function to plot monthly time series for all stations
 
