@@ -117,7 +117,7 @@ list_station = [
 station_title = print_station_title()
 
 station_location = pd.DataFrame({'latitude':idname.latitude, 'longitude':idname.longitude})
-
+station_location.to_csv('station_location.csv')
 # In[ ]:
 
 
